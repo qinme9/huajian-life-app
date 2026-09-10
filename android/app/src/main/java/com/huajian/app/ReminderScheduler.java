@@ -86,6 +86,12 @@ public final class ReminderScheduler {
         SharedPreferences sp = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         sp.edit().putBoolean(KEY_ENABLED, false).apply();
         cancel(context);
+        clearNotification(context);
+    }
+
+    public static void clearNotification(Context context) {
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) manager.cancel(NOTIFICATION_ID);
     }
 
     public static void schedule(Context context) {
