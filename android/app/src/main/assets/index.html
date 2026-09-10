@@ -282,14 +282,14 @@
     background: rgba(255,253,247,.96); border: 1px solid #eadfce;
     border-radius: 24px; box-shadow: 0 14px 34px rgba(63,80,67,.12);
     display: flex; flex-direction: column; padding: 18px 16px; z-index: 80;
-    transition: transform .25s ease, box-shadow .25s ease;
+    transition: transform .25s ease, box-shadow .25s ease, width .18s cubic-bezier(.22,.61,.36,1);
     overflow: visible;
   }
   .sidebar.collapsed { transform: translateX(-120%); }
   body.side-right .sidebar { right: 14px; left: auto; }
   body.side-left .sidebar { left: 14px; right: auto; }
   body.side-right .sidebar.collapsed { transform: translateX(120%); }
-  .app-shell { min-height: 100vh; transition: margin .25s ease; }
+  .app-shell { min-height: 100vh; transition: margin .18s cubic-bezier(.22,.61,.36,1); }
   body.side-left .app-shell { margin-left: calc(var(--sidebar-w) + 26px); }
   body.side-right .app-shell { margin-right: calc(var(--sidebar-w) + 26px); }
   body.sidebar-collapsed .app-shell { margin-left: 0; margin-right: 0; }
@@ -323,9 +323,12 @@
   .resize-handle {
     position:absolute; top:20px; bottom:20px; width:10px; cursor:col-resize;
     z-index:5; display:flex; align-items:center; justify-content:center;
+    touch-action: none;
   }
   .resize-handle::after { content:""; width:3px; height:40px; border-radius:99px; background:var(--line); transition:.2s; }
   .resize-handle:hover::after { background:var(--coral); }
+  body.sidebar-resizing { cursor: col-resize; }
+  body.sidebar-resizing .resize-handle::after { background:var(--coral); }
   body.side-left .resize-handle { right:-6px; }
   body.side-right .resize-handle { left:-6px; }
   .sidebar-fab {
@@ -1672,6 +1675,8 @@
   let sidebarDragging = false;
   let dragStartX = 0;
   let dragStartW = 0;
+  let sidebarResizeRaf = 0;
+  let sidebarPendingWidth = 270;
 
   function loadSidebarPref() {
     try {
@@ -1684,11 +1689,18 @@
   function saveSidebarPref() {
     try { localStorage.setItem(SIDEBAR_LS, JSON.stringify(sidebarPref)); } catch(e) {}
   }
+  function flushSidebarWidth() {
+    sidebarResizeRaf = 0;
+    sidebarPref.width = sidebarPendingWidth;
+    document.body.style.setProperty('--sidebar-w', sidebarPref.width + 'px');
+  }
   function applySidebar() {
     const mobile = window.innerWidth <= 900;
     document.body.classList.remove('side-left','side-right','sidebar-collapsed','sidebar-mobile-open');
     document.body.classList.add('side-' + sidebarPref.side);
     document.body.style.setProperty('--sidebar-w', sidebarPref.width + 'px');
+    sidebarPendingWidth = sidebarPref.width;
+    if (sidebarResizeRaf) { cancelAnimationFrame(sidebarResizeRaf); sidebarResizeRaf = 0; }
 
     const closed = sidebarPref.collapsed && !mobile;
     document.body.classList.toggle('sidebar-collapsed', closed);
@@ -1798,6 +1810,8 @@
       sidebarDragging = true;
       dragStartX = e.clientX;
       dragStartW = sidebarPref.width;
+      sidebarPendingWidth = sidebarPref.width;
+      document.body.classList.add('sidebar-resizing');
       document.body.style.userSelect = 'none';
       handle.setPointerCapture && handle.setPointerCapture(e.pointerId);
       e.preventDefault();
@@ -1805,14 +1819,20 @@
     handle.addEventListener('pointermove', e => {
       if (!sidebarDragging) return;
       const delta = sidebarPref.side === 'left' ? e.clientX - dragStartX : dragStartX - e.clientX;
-      sidebarPref.width = Math.min(400, Math.max(190, Math.round(dragStartW + delta)));
-      document.body.style.setProperty('--sidebar-w', sidebarPref.width + 'px');
-      saveSidebarPref();
+      sidebarPendingWidth = Math.min(400, Math.max(190, Math.round(dragStartW + delta)));
+      if (!sidebarResizeRaf) sidebarResizeRaf = requestAnimationFrame(flushSidebarWidth);
     });
     const endDrag = () => {
       if (!sidebarDragging) return;
       sidebarDragging = false;
+      if (sidebarResizeRaf) {
+        cancelAnimationFrame(sidebarResizeRaf);
+        sidebarResizeRaf = 0;
+      }
+      flushSidebarWidth();
+      document.body.classList.remove('sidebar-resizing');
       document.body.style.userSelect = '';
+      saveSidebarPref();
     };
     handle.addEventListener('pointerup', endDrag);
     handle.addEventListener('pointercancel', endDrag);
