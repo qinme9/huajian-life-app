@@ -1244,6 +1244,7 @@
       <button class="btn btn-light btn-sm" id="exportDownloadBtn">下载文件</button>
       <button class="btn btn-light btn-sm" id="exportShareBtn">分享文件</button>
       <a class="btn btn-ghost btn-sm" id="exportManualLink" download>手动下载</a>
+      <button class="btn btn-light btn-sm" id="exportPreviewClose" data-i18n="settings.close">关闭</button>
     </div>
   </div>
 </div>
@@ -3459,6 +3460,8 @@
     if ($('exportBtn')) $('exportBtn').addEventListener('click', () => openExportPreview('json'));
     if ($('openJsonExportBtn')) $('openJsonExportBtn').addEventListener('click', () => openExportPreview('json'));
     if ($('openCalendarExportBtn')) $('openCalendarExportBtn').addEventListener('click', () => openExportPreview('ics'));
+    if ($('exportPreviewClose')) $('exportPreviewClose').addEventListener('click', () => $('exportPreviewMask').classList.remove('show'));
+    if ($('exportPreviewMask')) $('exportPreviewMask').addEventListener('click', e => { if (e.target === $('exportPreviewMask')) $('exportPreviewMask').classList.remove('show'); });
     if ($('exportCopyBtn')) $('exportCopyBtn').addEventListener('click', copyCurrentExport);
     if ($('exportShareBtn')) $('exportShareBtn').addEventListener('click', shareCurrentExport);
     if ($('exportDownloadBtn')) $('exportDownloadBtn').addEventListener('click', downloadCurrentExport);
