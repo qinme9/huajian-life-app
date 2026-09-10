@@ -301,7 +301,9 @@
   }
   .sidebar-title { font-weight:800; color:var(--green-dark); font-size:18px; letter-spacing:1px; }
   .sidebar-title small { display:block; font-size:11px; color:var(--muted); font-weight:400; }
-  .sidebar-head .icon-btn { margin-left:auto; font-size:20px; }
+  .sidebar-head .icon-btn { margin-left:4px; font-size:20px; }
+  .sidebar-head #sidebarOrderToggle { margin-left:auto; }
+  .sidebar-head #sidebarOrderToggle.active { background:var(--green-light); color:var(--green-dark); }
   .sidebar-controls {
     display:flex; align-items:center; gap:6px; background:#f6efe3; border-radius:14px;
     padding:8px 10px; margin-bottom:14px;
@@ -319,6 +321,14 @@
   }
   .side-nav a:hover { background:var(--green-light); color:var(--green-dark); transform:translateX(3px); }
   .side-nav a .nav-emoji { width:26px; text-align:center; font-size:17px; }
+  .side-nav a .nav-move-group { display:none; gap:2px; margin-left:auto; }
+  body.sidebar-ordering .side-nav a .nav-move-group { display:flex; }
+  .nav-move-btn {
+    border:none; background:transparent; color:var(--muted); cursor:pointer;
+    font-size:11px; padding:2px 4px; border-radius:6px; line-height:1;
+  }
+  .nav-move-btn:hover { background:var(--green-light); color:var(--green-dark); }
+  body.sidebar-ordering .side-nav a { background:rgba(255,255,255,.55); }
   .sidebar-foot { font-size:11px; color:var(--muted); text-align:center; padding-top:10px; border-top:1px dashed #eadfce; margin-top:8px; }
   .resize-handle {
     position:absolute; top:20px; bottom:20px; width:10px; cursor:col-resize;
@@ -675,6 +685,12 @@
   }
   .cat-add-btn:hover { background:var(--green-light); }
   body.theme-dark .cat-add-btn { background:#1f2a25; border-color:#47584e; color:var(--text); }
+  .cat-del-btn {
+    flex:0 0 30px; width:30px; height:34px; border:1px dashed #e2b9b1; border-radius:10px;
+    background:#fffdf8; color:#c14e3c; cursor:pointer; font-size:16px; line-height:1;
+  }
+  .cat-del-btn:hover { background:#fee9e5; }
+  body.theme-dark .cat-del-btn { background:#2a1f1d; border-color:#6d4a44; color:#ffb4a8; }
 
 
   /* Responsive quick-add todo form */
@@ -792,6 +808,7 @@
   <div class="sidebar-head">
     <div class="sidebar-logo">🌸</div>
     <div class="sidebar-title">花笺<small>LIFE BOOK</small></div>
+    <button class="icon-btn" id="sidebarOrderToggle" title="调整侧边栏顺序">⇅</button>
     <button class="icon-btn" id="sidebarToggle" title="收起侧边栏">‹</button>
   </div>
   <div class="sidebar-controls">
@@ -964,7 +981,7 @@
       <h3 id="todoFormTitle">新增待办</h3>
       <div class="todo-form-grid">
         <div class="span-2"><label class="field-label">任务名称 *</label><input id="todoName" placeholder="写点什么待办呢？"></div>
-        <div><label class="field-label">所属类型</label><span class="cat-select-wrap"><select id="todoType"><option>学习</option><option>自媒体</option><option>杂事</option></select><button type="button" class="cat-add-btn" data-group="todo" data-target="todoType" title="添加自定义分类">＋</button></span></div>
+        <div><label class="field-label">所属类型</label><span class="cat-select-wrap"><select id="todoType"><option>学习</option><option>自媒体</option><option>杂事</option></select><button type="button" class="cat-add-btn" data-group="todo" data-target="todoType" title="添加自定义分类">＋</button><button type="button" class="cat-del-btn" data-group="todo" data-target="todoType" title="删除当前自定义分类">－</button></span></div>
         <div><label class="field-label">截止日期</label><input type="date" id="todoDue"></div>
         <div><label class="field-label">优先级</label><select id="todoPriority"><option>P0</option><option>P1</option><option>P2</option><option selected>P3</option></select></div>
         <div><label class="field-label">状态</label><select id="todoStatus"><option>未开始</option><option>进行中</option><option>已完成</option><option>已延期</option></select></div>
@@ -1022,7 +1039,7 @@
           </div>
           <div class="date-add-grid">
             <div class="full"><label class="field-label">名称 *</label><input id="dateName" placeholder="例如：妈妈生日、恋爱纪念日、考试周"></div>
-            <div><label class="field-label">类型</label><span class="cat-select-wrap"><select id="dateType"><option>生日</option><option>纪念日</option><option>节日</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="date" data-target="dateType" title="添加自定义分类">＋</button></span></div>
+            <div><label class="field-label">类型</label><span class="cat-select-wrap"><select id="dateType"><option>生日</option><option>纪念日</option><option>节日</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="date" data-target="dateType" title="添加自定义分类">＋</button><button type="button" class="cat-del-btn" data-group="date" data-target="dateType" title="删除当前自定义分类">－</button></span></div>
             <div><label class="field-label">起始日期 *</label><input type="date" id="dateValue"></div>
             <div class="full"><label class="field-label">重复规则</label><select id="dateRepeat">
               <option value="year" selected>每年重复（默认）</option>
@@ -1082,7 +1099,7 @@
           <div class="form-grid">
             <div><label class="field-label">日期</label><input type="date" id="entryDate"></div>
             <div><label class="field-label">收支类型</label><select id="entryType"><option>支出</option><option>收入</option></select></div>
-            <div><label class="field-label">消费分类</label><span class="cat-select-wrap"><select id="entryCategory"><option>餐饮</option><option>交通</option><option>学习</option><option>娱乐</option><option>购物</option><option>住宿</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="entry" data-target="entryCategory" title="添加自定义分类">＋</button></span></div>
+            <div><label class="field-label">消费分类</label><span class="cat-select-wrap"><select id="entryCategory"><option>餐饮</option><option>交通</option><option>学习</option><option>娱乐</option><option>购物</option><option>住宿</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="entry" data-target="entryCategory" title="添加自定义分类">＋</button><button type="button" class="cat-del-btn" data-group="entry" data-target="entryCategory" title="删除当前自定义分类">－</button></span></div>
             <div><label class="field-label">金额 *</label><input type="number" id="entryAmount" min="0" step="0.01" placeholder="0.00"></div>
             <div><label class="field-label">支付方式</label><select id="entryPay"><option>微信</option><option>支付宝</option><option>现金</option><option>银行卡</option></select></div>
             <div class="form-grid-wide"><label class="field-label">消费说明（试试“食堂午餐”）</label><input id="entryDesc" placeholder="例：食堂午餐、地铁充值、买一本二手书"></div>
@@ -1111,7 +1128,7 @@
         <h3 style="font-size:16px; color:var(--green-dark); margin-bottom:10px;">记录一个新第一次</h3>
         <div class="form-grid">
           <div class="form-grid-wide"><label class="field-label">事件名称 *</label><input id="firstName" placeholder="例如：第一次上台答辩"></div>
-          <div><label class="field-label">分类</label><span class="cat-select-wrap"><select id="firstCategory"><option>学习</option><option>旅行</option><option>生活</option><option>社交</option><option>成长</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="first" data-target="firstCategory" title="添加自定义分类">＋</button></span></div>
+          <div><label class="field-label">分类</label><span class="cat-select-wrap"><select id="firstCategory"><option>学习</option><option>旅行</option><option>生活</option><option>社交</option><option>成长</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="first" data-target="firstCategory" title="添加自定义分类">＋</button><button type="button" class="cat-del-btn" data-group="first" data-target="firstCategory" title="删除当前自定义分类">－</button></span></div>
           <div><label class="field-label">日期</label><input type="date" id="firstDate"></div>
           <div class="form-grid-wide"><label class="field-label">一句话描述</label><textarea id="firstDesc" placeholder="当时的心情、细节，或后来的自己想说的一句话……"></textarea></div>
           <div class="form-grid-wide form-actions"><button class="btn btn-sm" id="firstAdd">收藏这个第一次</button></div>
@@ -1132,7 +1149,7 @@
         <h3 style="font-size:16px; color:var(--green-dark); margin-bottom:10px;">记录一件大事</h3>
         <div class="form-grid">
           <div class="form-grid-wide"><label class="field-label">事件标题 *</label><input id="milestoneTitle" placeholder="例如：收到录取通知书"></div>
-          <div><label class="field-label">分类</label><span class="cat-select-wrap"><select id="milestoneCategory"><option>学业</option><option>工作</option><option>生活</option><option>情感</option><option>健康</option><option>旅行</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="milestone" data-target="milestoneCategory" title="添加自定义分类">＋</button></span></div>
+          <div><label class="field-label">分类</label><span class="cat-select-wrap"><select id="milestoneCategory"><option>学业</option><option>工作</option><option>生活</option><option>情感</option><option>健康</option><option>旅行</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="milestone" data-target="milestoneCategory" title="添加自定义分类">＋</button><button type="button" class="cat-del-btn" data-group="milestone" data-target="milestoneCategory" title="删除当前自定义分类">－</button></span></div>
           <div><label class="field-label">日期 *</label><input type="date" id="milestoneDate"></div>
           <div><label class="field-label">重要程度</label><select id="milestoneImportance"><option value="5">★★★★★ 人生级</option><option value="4">★★★★☆ 很重要</option><option value="3" selected>★★★☆☆ 值得记住</option><option value="2">★★☆☆☆ 小里程碑</option><option value="1">★☆☆☆☆ 一点微光</option></select></div>
           <div><label class="field-label">地点</label><input id="milestoneLocation" placeholder="例如：学校 / 家里 / 某个城市"></div>
@@ -1161,7 +1178,7 @@
         <h3 id="memoFormTitle" style="font-size:16px; color:var(--green-dark); margin-bottom:10px;">新建备忘录</h3>
         <div class="form-grid">
           <div class="form-grid-wide"><label class="field-label">标题 *</label><input id="memoTitle" placeholder="例如：周末采购清单"></div>
-          <div><label class="field-label">分类</label><span class="cat-select-wrap"><select id="memoCategory"><option>生活</option><option>学习</option><option>工作</option><option>灵感</option><option>清单</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="memo" data-target="memoCategory" title="添加自定义分类">＋</button></span></div>
+          <div><label class="field-label">分类</label><span class="cat-select-wrap"><select id="memoCategory"><option>生活</option><option>学习</option><option>工作</option><option>灵感</option><option>清单</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="memo" data-target="memoCategory" title="添加自定义分类">＋</button><button type="button" class="cat-del-btn" data-group="memo" data-target="memoCategory" title="删除当前自定义分类">－</button></span></div>
           <div><label class="field-label">便签颜色</label><select id="memoColor"><option value="cream">奶油</option><option value="coral">珊瑚</option><option value="green">墨绿</option><option value="gold">金黄</option><option value="blue">淡蓝</option></select></div>
           <div><label class="field-label">置顶</label><div style="display:flex; align-items:center; gap:6px; padding-top:8px;"><input type="checkbox" id="memoPinned" style="width:auto;"><span style="font-size:13px; color:var(--muted)">⭐ 置顶</span></div></div>
           <div class="form-grid-wide"><label class="field-label">内容</label><textarea id="memoContent" rows="6" placeholder="写点什么……支持换行"></textarea></div>
@@ -1189,7 +1206,7 @@
     <h3 id="todoModalTitle">编辑待办</h3>
     <div class="form-grid">
       <div class="form-grid-wide"><label class="field-label">任务名称 *</label><input id="mTodoName"></div>
-      <div><label class="field-label">所属类型</label><span class="cat-select-wrap"><select id="mTodoType"><option>学习</option><option>自媒体</option><option>杂事</option></select><button type="button" class="cat-add-btn" data-group="todo" data-target="mTodoType" title="添加自定义分类">＋</button></span></div>
+      <div><label class="field-label">所属类型</label><span class="cat-select-wrap"><select id="mTodoType"><option>学习</option><option>自媒体</option><option>杂事</option></select><button type="button" class="cat-add-btn" data-group="todo" data-target="mTodoType" title="添加自定义分类">＋</button><button type="button" class="cat-del-btn" data-group="todo" data-target="mTodoType" title="删除当前自定义分类">－</button></span></div>
       <div><label class="field-label">截止日期</label><input type="date" id="mTodoDue"></div>
       <div><label class="field-label">优先级</label><select id="mTodoPriority"><option>P0</option><option>P1</option><option>P2</option><option selected>P3</option></select></div>
       <div><label class="field-label">状态</label><select id="mTodoStatus"><option>未开始</option><option>进行中</option><option>已完成</option><option>已延期</option></select></div>
@@ -1298,6 +1315,33 @@
     </div>
     <div class="setting-row">
       <div>
+        <strong data-i18n="settings.reminderEnabled">每日提醒</strong>
+        <small data-i18n="settings.reminderEnabledDesc">开启或关闭每日通知</small>
+      </div>
+      <label class="switch" title="每日提醒">
+        <input type="checkbox" id="settingReminderEnabled" checked>
+        <span></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div>
+        <strong data-i18n="settings.reminderTime">提醒时间</strong>
+        <small data-i18n="settings.reminderTimeDesc">每天在这个时间提醒</small>
+      </div>
+      <input type="time" id="settingReminderTime" value="09:00" style="width:auto;">
+    </div>
+    <div class="setting-row">
+      <div>
+        <strong data-i18n="settings.reminderAlarm">提醒声音</strong>
+        <small data-i18n="settings.reminderAlarmDesc">普通通知音或闹铃</small>
+      </div>
+      <select id="settingReminderAlarm">
+        <option value="notification" data-i18n="settings.reminderAlarmNormal">通知音</option>
+        <option value="alarm" data-i18n="settings.reminderAlarmRing">闹铃</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div>
         <strong data-i18n="settings.mobileStart">手机版启动页</strong>
         <small data-i18n="settings.mobileStartDesc">手机版打开时默认进入的页面</small>
       </div>
@@ -1398,6 +1442,7 @@
   }
   function save() {
     try { localStorage.setItem(DATA_KEY, JSON.stringify(state)); } catch(e) {}
+    try { if (typeof syncReminderSchedule === 'function') syncReminderSchedule(); } catch(e) {}
   }
 
   const $ = id => document.getElementById(id);
@@ -1408,12 +1453,12 @@
   const THEME_KEY = 'huajian-theme-v1';
   const THEME_MODE_KEY = 'huajian-theme-mode-v1';
   const SETTINGS_KEY = 'huajian-settings-v1';
-  let appSettings = { motion: true, blur: 'auto', density: 'normal', mobileStart: 'home', customCategories: {}, palette: 'classic', popupMode: 'auto' };
+  let appSettings = { motion: true, blur: 'auto', density: 'normal', mobileStart: 'home', customCategories: {}, palette: 'classic', popupMode: 'auto', reminderEnabled: true, reminderTime: '09:00', reminderAlarm: false };
   let settingsBound = false;
   function loadSettings() {
     try {
       const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-      appSettings = Object.assign({ motion: true, blur: 'auto', density: 'normal', mobileStart: 'home', customCategories: {}, palette: 'classic', popupMode: 'auto' }, raw);
+      appSettings = Object.assign({ motion: true, blur: 'auto', density: 'normal', mobileStart: 'home', customCategories: {}, palette: 'classic', popupMode: 'auto', reminderEnabled: true, reminderTime: '09:00', reminderAlarm: false }, raw);
     } catch(e) {}
     if (typeof appSettings.motion !== 'boolean') appSettings.motion = true;
     if (!['auto','on','off'].includes(appSettings.blur)) appSettings.blur = 'auto';
@@ -1422,6 +1467,9 @@
     if (!appSettings.customCategories || typeof appSettings.customCategories !== 'object' || Array.isArray(appSettings.customCategories)) appSettings.customCategories = {};
     if (!['classic','sakura','mint','ocean','sunset','violet'].includes(appSettings.palette)) appSettings.palette = 'classic';
     if (!['auto','sheet','center'].includes(appSettings.popupMode)) appSettings.popupMode = 'auto';
+    if (typeof appSettings.reminderEnabled !== 'boolean') appSettings.reminderEnabled = true;
+    if (!/^\d{2}:\d{2}$/.test(String(appSettings.reminderTime || ''))) appSettings.reminderTime = '09:00';
+    if (typeof appSettings.reminderAlarm !== 'boolean') appSettings.reminderAlarm = false;
   }
   function saveSettings() {
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings)); } catch(e) {}
@@ -1445,6 +1493,9 @@
     if ($('settingTheme')) $('settingTheme').value = themeMode;
     if ($('settingLang')) $('settingLang').value = lang;
     if ($('settingSidebarSide')) $('settingSidebarSide').value = sidebarPref.side;
+    if ($('settingReminderEnabled')) $('settingReminderEnabled').checked = !!appSettings.reminderEnabled;
+    if ($('settingReminderTime')) $('settingReminderTime').value = appSettings.reminderTime;
+    if ($('settingReminderAlarm')) $('settingReminderAlarm').value = appSettings.reminderAlarm ? 'alarm' : 'notification';
   }
   const CUSTOM_CAT_SELECTS = {
     todo: ['todoType','mTodoType','typeFilter'],
@@ -1489,6 +1540,29 @@
     if (target && $(target)) $(target).value = value;
     toast(lang === 'zh' ? '已添加自定义分类：' + value : 'Custom category added: ' + value);
   }
+  function deleteCustomCategory(group, targetId) {
+    const sel = $(targetId);
+    if (!sel) return;
+    const value = sel.value;
+    const arr = (appSettings.customCategories && appSettings.customCategories[group]) || [];
+    if (arr.indexOf(value) < 0) {
+      toast(lang === 'zh' ? '当前选中的不是自定义分类' : 'The selected category is not custom');
+      return;
+    }
+    const ok = confirm(lang === 'zh' ? '确定删除自定义分类「' + value + '」吗？已使用该分类的内容不会被删除。' : 'Delete custom category "' + value + '"? Existing items keep their category.');
+    if (!ok) return;
+    appSettings.customCategories[group] = arr.filter(v => v !== value);
+    saveSettings();
+    (CUSTOM_CAT_SELECTS[group] || []).forEach(id => {
+      const s = $(id);
+      if (!s) return;
+      Array.from(s.options).forEach(opt => {
+        if (opt.value === value && opt.dataset.custom === '1') opt.remove();
+      });
+      if (s.value === value) s.selectedIndex = 0;
+    });
+    toast(lang === 'zh' ? '已删除自定义分类：' + value : 'Custom category deleted: ' + value);
+  }
 
   function bindSettingsEvents() {
     if (settingsBound) return;
@@ -1516,6 +1590,18 @@
     $('settingSidebarSide').addEventListener('change', () => {
       sidebarPref.side = $('settingSidebarSide').value;
       saveSidebarPref(); applySidebar(); updateSettingsUI();
+    });
+    if ($('settingReminderEnabled')) $('settingReminderEnabled').addEventListener('change', () => {
+      appSettings.reminderEnabled = $('settingReminderEnabled').checked;
+      saveSettings(); syncReminderSchedule();
+    });
+    if ($('settingReminderTime')) $('settingReminderTime').addEventListener('change', () => {
+      appSettings.reminderTime = $('settingReminderTime').value || '09:00';
+      saveSettings(); syncReminderSchedule();
+    });
+    if ($('settingReminderAlarm')) $('settingReminderAlarm').addEventListener('change', () => {
+      appSettings.reminderAlarm = $('settingReminderAlarm').value === 'alarm';
+      saveSettings(); syncReminderSchedule();
     });
     $('settingClearData').addEventListener('click', () => {
       const ok = confirm(lang === 'zh' ? '确定要清空所有本地数据吗？此操作不可恢复！' : 'Clear all local data? This cannot be undone.');
@@ -1564,7 +1650,7 @@
       'habit.title':'🌿 习惯打卡', 'habit.tool':'每天点亮一朵小花，连续的日子会连成花环', 'habit.new':'新习惯名称', 'habit.add':'＋ 新增习惯', 'habit.pause':'暂停', 'habit.resume':'恢复', 'habit.check':'☑ 打卡', 'habit.doneToday':'今日已打卡 ✓', 'habit.streak':'连续天数', 'habit.total':'总次数', 'habit.paused':'已暂停',
       'dates.title':'💝 重要日期', 'dates.tool':'把期待写在倒计时里，准备也在一点点完成', 'dates.add':'✚ 添加重要日期', 'dates.addHint':'重复可自定义', 'dates.name':'名称 *', 'dates.type':'类型', 'dates.date':'起始日期 *', 'dates.repeat':'重复规则', 'dates.every':'每', 'dates.everyUnit':'天/周/月/年', 'dates.customHint':'重复一次（仅“自定义间隔”时生效）', 'dates.addBtn':'＋ 添加',
       'ledger.title':'💰 生活费账本', 'ledger.tool':'输入说明「食堂午餐」会自动归类为餐饮', 'ledger.budget':'🎯 月预算设置', 'ledger.month':'预算月份', 'ledger.amount':'预算金额', 'ledger.saveBudget':'保存预算', 'ledger.used':'已使用', 'ledger.leftDays':'剩余天数', 'ledger.daily':'日均可用', 'ledger.entry':'记一笔', 'ledger.date':'日期', 'ledger.incomeType':'收支类型', 'ledger.category':'消费分类', 'ledger.money':'金额 *', 'ledger.pay':'支付方式', 'ledger.desc':'消费说明（试试“食堂午餐”）', 'ledger.add':'记入账本', 'ledger.records':'📒 流水记录',
-      'first.title':'✨ 人生第一次', 'first.tool':'第一次也许很小，但都值得郑重收藏', 'first.add':'记录一个新第一次', 'first.name':'事件名称 *', 'first.category':'分类', 'first.date':'日期', 'first.desc':'一句话描述', 'first.save':'收藏这个第一次', 'settings.title':'⚙️ 设置', 'settings.motion':'动画效果', 'settings.motionDesc':'关闭后减少页面过渡和动画，提升流畅度', 'settings.blur':'毛玻璃效果', 'settings.blurDesc':'自动：手机端关闭，电脑端保留；也可强制开启或关闭', 'settings.blurAuto':'自动', 'settings.blurOn':'开启', 'settings.blurOff':'关闭', 'settings.close':'关闭', 'settings.theme':'主题模式', 'settings.themeDesc':'浅色 / 深色 / 跟随系统', 'settings.themeAuto':'跟随系统', 'settings.themeLight':'浅色', 'settings.themeDark':'深色', 'settings.lang':'界面语言', 'settings.langDesc':'中文 / English', 'settings.langZh':'中文', 'settings.langEn':'English', 'settings.density':'界面密度', 'settings.densityDesc':'宽松 / 标准 / 紧凑', 'settings.densityWide':'宽松', 'settings.densityNormal':'标准', 'settings.densityCompact':'紧凑', 'settings.sidebarSide':'侧边栏位置', 'settings.sidebarDesc':'左侧或右侧显示', 'settings.sidebarLeft':'左侧', 'settings.sidebarRight':'右侧', 'settings.mobileStart':'手机版启动页', 'settings.mobileStartDesc':'手机版打开时默认进入的页面', 'settings.pageHome':'首页', 'settings.pageTodo':'待办', 'settings.pageHabit':'习惯', 'settings.pageDates':'重要日期', 'settings.pageLedger':'账本', 'settings.pageFirst':'人生第一次', 'settings.pageMilestones':'大事记', 'settings.pageMemos':'备忘录', 'settings.clearData':'清空所有数据', 'settings.palette':'配色主题', 'settings.paletteDesc':'在日间 / 夜间模式之外选择更多配色', 'settings.paletteClassic':'经典花笺', 'settings.paletteSakura':'樱花粉', 'settings.paletteMint':'薄荷青', 'settings.paletteOcean':'海盐蓝', 'settings.paletteSunset':'暖阳橘', 'settings.paletteViolet':'紫藤', 'settings.popupMode':'弹窗模式', 'settings.popupModeDesc':'底部卡片 / 居中弹窗 / 自动', 'settings.popupAuto':'自动', 'settings.popupSheet':'底部卡片', 'settings.popupCenter':'居中弹窗', 'reminder.title':'🔔 提醒中心', 'reminder.enable':'开启通知', 'reminder.test':'测试通知', 'reminder.daily':'每日摘要', 'reminder.close':'关闭', 'reminder.todo':'今日待办', 'reminder.habit':'未打卡习惯', 'reminder.date':'临近重要日期', 'reminder.none':'今天没有紧急提醒，安心生活吧 ✨', 'reminder.exportIcs':'导出日历提醒', 'reminder.fileNoticeTitle':'系统通知不可用', 'reminder.fileNotice':'当前以本地文件打开，浏览器无法授权系统通知。请用 HTTPS 在线版，或导出 .ics 到手机日历。'
+      'first.title':'✨ 人生第一次', 'first.tool':'第一次也许很小，但都值得郑重收藏', 'first.add':'记录一个新第一次', 'first.name':'事件名称 *', 'first.category':'分类', 'first.date':'日期', 'first.desc':'一句话描述', 'first.save':'收藏这个第一次', 'settings.title':'⚙️ 设置', 'settings.motion':'动画效果', 'settings.motionDesc':'关闭后减少页面过渡和动画，提升流畅度', 'settings.blur':'毛玻璃效果', 'settings.blurDesc':'自动：手机端关闭，电脑端保留；也可强制开启或关闭', 'settings.blurAuto':'自动', 'settings.blurOn':'开启', 'settings.blurOff':'关闭', 'settings.close':'关闭', 'settings.theme':'主题模式', 'settings.themeDesc':'浅色 / 深色 / 跟随系统', 'settings.themeAuto':'跟随系统', 'settings.themeLight':'浅色', 'settings.themeDark':'深色', 'settings.lang':'界面语言', 'settings.langDesc':'中文 / English', 'settings.langZh':'中文', 'settings.langEn':'English', 'settings.density':'界面密度', 'settings.densityDesc':'宽松 / 标准 / 紧凑', 'settings.densityWide':'宽松', 'settings.densityNormal':'标准', 'settings.densityCompact':'紧凑', 'settings.sidebarSide':'侧边栏位置', 'settings.sidebarDesc':'左侧或右侧显示', 'settings.sidebarLeft':'左侧', 'settings.sidebarRight':'右侧', 'settings.reminderEnabled':'每日提醒', 'settings.reminderEnabledDesc':'开启或关闭每日通知', 'settings.reminderTime':'提醒时间', 'settings.reminderTimeDesc':'每天在这个时间提醒', 'settings.reminderAlarm':'提醒声音', 'settings.reminderAlarmDesc':'普通通知音或闹铃', 'settings.reminderAlarmNormal':'通知音', 'settings.reminderAlarmRing':'闹铃', 'settings.mobileStart':'手机版启动页', 'settings.mobileStartDesc':'手机版打开时默认进入的页面', 'settings.pageHome':'首页', 'settings.pageTodo':'待办', 'settings.pageHabit':'习惯', 'settings.pageDates':'重要日期', 'settings.pageLedger':'账本', 'settings.pageFirst':'人生第一次', 'settings.pageMilestones':'大事记', 'settings.pageMemos':'备忘录', 'settings.clearData':'清空所有数据', 'settings.palette':'配色主题', 'settings.paletteDesc':'在日间 / 夜间模式之外选择更多配色', 'settings.paletteClassic':'经典花笺', 'settings.paletteSakura':'樱花粉', 'settings.paletteMint':'薄荷青', 'settings.paletteOcean':'海盐蓝', 'settings.paletteSunset':'暖阳橘', 'settings.paletteViolet':'紫藤', 'settings.popupMode':'弹窗模式', 'settings.popupModeDesc':'底部卡片 / 居中弹窗 / 自动', 'settings.popupAuto':'自动', 'settings.popupSheet':'底部卡片', 'settings.popupCenter':'居中弹窗', 'reminder.title':'🔔 提醒中心', 'reminder.enable':'开启通知', 'reminder.test':'测试通知', 'reminder.daily':'每日摘要', 'reminder.close':'关闭', 'reminder.todo':'今日待办', 'reminder.habit':'未打卡习惯', 'reminder.date':'临近重要日期', 'reminder.none':'今天没有紧急提醒，安心生活吧 ✨', 'reminder.exportIcs':'导出日历提醒', 'reminder.fileNoticeTitle':'系统通知不可用', 'reminder.fileNotice':'当前以本地文件打开，浏览器无法授权系统通知。请用 HTTPS 在线版，或导出 .ics 到手机日历。'
     },
 
     en: {
@@ -1585,7 +1671,7 @@
       'habit.title':'🌿 Habit Tracking', 'habit.tool':'Light a small flower every day; continuous days become a garland', 'habit.new':'New habit name', 'habit.add':'＋ Add Habit', 'habit.pause':'Pause', 'habit.resume':'Resume', 'habit.check':'☑ Check in', 'habit.doneToday':'Checked today ✓', 'habit.streak':'Streak', 'habit.total':'Total', 'habit.paused':'Paused',
       'dates.title':'💝 Important Dates', 'dates.tool':'Write expectations into countdowns; preparations grow day by day', 'dates.add':'✚ Add Important Date', 'dates.addHint':'Custom repeat available', 'dates.name':'Name *', 'dates.type':'Type', 'dates.date':'Start date *', 'dates.repeat':'Repeat rule', 'dates.every':'Every', 'dates.everyUnit':'day/week/month/year', 'dates.customHint':'Repeats once (only for Custom interval)', 'dates.addBtn':'＋ Add',
       'ledger.title':'💰 Expense Ledger', 'ledger.tool':'Entering “食堂午餐” auto-categorizes as Dining', 'ledger.budget':'🎯 Monthly Budget', 'ledger.month':'Budget month', 'ledger.amount':'Budget amount', 'ledger.saveBudget':'Save Budget', 'ledger.used':'Used', 'ledger.leftDays':'Days left', 'ledger.daily':'Daily available', 'ledger.entry':'Add Entry', 'ledger.date':'Date', 'ledger.incomeType':'Income/Expense', 'ledger.category':'Category', 'ledger.money':'Amount *', 'ledger.pay':'Payment method', 'ledger.desc':'Description (try “食堂午餐”)', 'ledger.add':'Add Entry', 'ledger.records':'📒 Entries',
-      'first.title':'✨ First-Time Experiences', 'first.tool':'First times can be small, yet still worth treasuring', 'first.add':'Record a New First', 'first.name':'Event name *', 'first.category':'Category', 'first.date':'Date', 'first.desc':'One-line description', 'first.save':'Save First Experience', 'settings.title':'⚙️ Settings', 'settings.motion':'Animations', 'settings.motionDesc':'Turn off to reduce transitions and animations for smoother scrolling', 'settings.blur':'Frosted glass', 'settings.blurDesc':'Auto: off on mobile, on on desktop. You can also force it on or off.', 'settings.blurAuto':'Auto', 'settings.blurOn':'On', 'settings.blurOff':'Off', 'settings.close':'Close', 'settings.theme':'Theme mode', 'settings.themeDesc':'Light / Dark / System', 'settings.themeAuto':'Follow system', 'settings.themeLight':'Light', 'settings.themeDark':'Dark', 'settings.lang':'Language', 'settings.langDesc':'中文 / English', 'settings.langZh':'中文', 'settings.langEn':'English', 'settings.density':'Density', 'settings.densityDesc':'Wide / Normal / Compact', 'settings.densityWide':'Wide', 'settings.densityNormal':'Normal', 'settings.densityCompact':'Compact', 'settings.sidebarSide':'Sidebar side', 'settings.sidebarDesc':'Show on left or right', 'settings.sidebarLeft':'Left', 'settings.sidebarRight':'Right', 'settings.mobileStart':'Mobile start page', 'settings.mobileStartDesc':'Default page when opening on mobile', 'settings.pageHome':'Home', 'settings.pageTodo':'Todos', 'settings.pageHabit':'Habits', 'settings.pageDates':'Dates', 'settings.pageLedger':'Ledger', 'settings.pageFirst':'First Times', 'settings.pageMilestones':'Chronicle', 'settings.pageMemos':'Memos', 'settings.clearData':'Clear all data', 'settings.palette':'Color theme', 'settings.paletteDesc':'Choose more color themes beyond light / dark mode', 'settings.paletteClassic':'Classic', 'settings.paletteSakura':'Sakura Pink', 'settings.paletteMint':'Mint', 'settings.paletteOcean':'Ocean Blue', 'settings.paletteSunset':'Sunset Orange', 'settings.paletteViolet':'Violet', 'settings.popupMode':'Popup mode', 'settings.popupModeDesc':'Bottom sheet / Center / Auto', 'settings.popupAuto':'Auto', 'settings.popupSheet':'Bottom sheet', 'settings.popupCenter':'Center', 'reminder.title':'🔔 Reminder Center', 'reminder.enable':'Enable Notifications', 'reminder.test':'Test Notification', 'reminder.daily':'Daily Summary', 'reminder.close':'Close', 'reminder.todo':'Todos today', 'reminder.habit':'Habits left', 'reminder.date':'Upcoming date', 'reminder.none':'No urgent reminders today. Enjoy your day ✨', 'reminder.exportIcs':'Export calendar reminders', 'reminder.fileNoticeTitle':'System notifications unavailable', 'reminder.fileNotice':'Opened as a local file, the browser cannot grant system notification permission. Use the HTTPS online version, or export .ics to your phone calendar.'
+      'first.title':'✨ First-Time Experiences', 'first.tool':'First times can be small, yet still worth treasuring', 'first.add':'Record a New First', 'first.name':'Event name *', 'first.category':'Category', 'first.date':'Date', 'first.desc':'One-line description', 'first.save':'Save First Experience', 'settings.title':'⚙️ Settings', 'settings.motion':'Animations', 'settings.motionDesc':'Turn off to reduce transitions and animations for smoother scrolling', 'settings.blur':'Frosted glass', 'settings.blurDesc':'Auto: off on mobile, on on desktop. You can also force it on or off.', 'settings.blurAuto':'Auto', 'settings.blurOn':'On', 'settings.blurOff':'Off', 'settings.close':'Close', 'settings.theme':'Theme mode', 'settings.themeDesc':'Light / Dark / System', 'settings.themeAuto':'Follow system', 'settings.themeLight':'Light', 'settings.themeDark':'Dark', 'settings.lang':'Language', 'settings.langDesc':'中文 / English', 'settings.langZh':'中文', 'settings.langEn':'English', 'settings.density':'Density', 'settings.densityDesc':'Wide / Normal / Compact', 'settings.densityWide':'Wide', 'settings.densityNormal':'Normal', 'settings.densityCompact':'Compact', 'settings.sidebarSide':'Sidebar side', 'settings.sidebarDesc':'Show on left or right', 'settings.sidebarLeft':'Left', 'settings.sidebarRight':'Right', 'settings.reminderEnabled':'Daily reminder', 'settings.reminderEnabledDesc':'Turn the daily notification on or off', 'settings.reminderTime':'Reminder time', 'settings.reminderTimeDesc':'Notify me at this time every day', 'settings.reminderAlarm':'Reminder sound', 'settings.reminderAlarmDesc':'Notification sound or alarm', 'settings.reminderAlarmNormal':'Notification sound', 'settings.reminderAlarmRing':'Alarm', 'settings.mobileStart':'Mobile start page', 'settings.mobileStartDesc':'Default page when opening on mobile', 'settings.pageHome':'Home', 'settings.pageTodo':'Todos', 'settings.pageHabit':'Habits', 'settings.pageDates':'Dates', 'settings.pageLedger':'Ledger', 'settings.pageFirst':'First Times', 'settings.pageMilestones':'Chronicle', 'settings.pageMemos':'Memos', 'settings.clearData':'Clear all data', 'settings.palette':'Color theme', 'settings.paletteDesc':'Choose more color themes beyond light / dark mode', 'settings.paletteClassic':'Classic', 'settings.paletteSakura':'Sakura Pink', 'settings.paletteMint':'Mint', 'settings.paletteOcean':'Ocean Blue', 'settings.paletteSunset':'Sunset Orange', 'settings.paletteViolet':'Violet', 'settings.popupMode':'Popup mode', 'settings.popupModeDesc':'Bottom sheet / Center / Auto', 'settings.popupAuto':'Auto', 'settings.popupSheet':'Bottom sheet', 'settings.popupCenter':'Center', 'reminder.title':'🔔 Reminder Center', 'reminder.enable':'Enable Notifications', 'reminder.test':'Test Notification', 'reminder.daily':'Daily Summary', 'reminder.close':'Close', 'reminder.todo':'Todos today', 'reminder.habit':'Habits left', 'reminder.date':'Upcoming date', 'reminder.none':'No urgent reminders today. Enjoy your day ✨', 'reminder.exportIcs':'Export calendar reminders', 'reminder.fileNoticeTitle':'System notifications unavailable', 'reminder.fileNotice':'Opened as a local file, the browser cannot grant system notification permission. Use the HTTPS online version, or export .ics to your phone calendar.'
     }
   };
 
@@ -1837,6 +1923,81 @@
     handle.addEventListener('pointerup', endDrag);
     handle.addEventListener('pointercancel', endDrag);
     window.addEventListener('resize', applySidebar);
+  }
+
+  /* ---------- Sidebar order ---------- */
+  const SIDEBAR_ORDER_KEY = 'huajian-sidebar-order-v1';
+  const SIDEBAR_PAGE_KEYS = ['home','tools','todo','habit','dates','ledger','first','milestones','memos'];
+  const SIDEBAR_MODULE_TO_PAGE = { overview:'home', tools:'tools', todo:'todo', habit:'habit', dates:'dates', ledger:'ledger', first:'first', milestones:'milestones', memos:'memos' };
+  function sidebarLinkKey(a) {
+    const raw = (a.getAttribute('href') || '').replace('#', '');
+    if (raw.indexOf('module-') === 0) return SIDEBAR_MODULE_TO_PAGE[raw.slice(7)] || raw;
+    return raw;
+  }
+  function loadSidebarOrder() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SIDEBAR_ORDER_KEY) || 'null');
+      if (Array.isArray(raw)) {
+        const cleaned = raw.filter(k => SIDEBAR_PAGE_KEYS.includes(k));
+        if (cleaned.length) return cleaned.concat(SIDEBAR_PAGE_KEYS.filter(k => !cleaned.includes(k)));
+      }
+    } catch(e) {}
+    return SIDEBAR_PAGE_KEYS.slice();
+  }
+  function saveSidebarOrder(order) {
+    try { localStorage.setItem(SIDEBAR_ORDER_KEY, JSON.stringify(order)); } catch(e) {}
+  }
+  function applySidebarOrder() {
+    const nav = document.querySelector('.side-nav');
+    if (!nav) return;
+    const order = loadSidebarOrder();
+    const links = Array.from(nav.children).filter(el => el.tagName === 'A');
+    const byKey = {};
+    links.forEach(a => { const k = sidebarLinkKey(a); if (k) byKey[k] = a; });
+    const ordered = [];
+    order.forEach(k => { if (byKey[k] && ordered.indexOf(byKey[k]) < 0) ordered.push(byKey[k]); });
+    links.forEach(a => { if (ordered.indexOf(a) < 0) ordered.push(a); });
+    ordered.forEach(a => nav.appendChild(a));
+    ordered.forEach(a => {
+      if (!a.querySelector('.nav-move-group')) {
+        const g = document.createElement('span');
+        g.className = 'nav-move-group';
+        g.innerHTML = '<button type="button" class="nav-move-btn" data-nav-move="up" title="上移">▲</button><button type="button" class="nav-move-btn" data-nav-move="down" title="下移">▼</button>';
+        a.appendChild(g);
+      }
+    });
+  }
+  function moveSidebarItem(key, dir) {
+    const order = loadSidebarOrder();
+    const i = order.indexOf(key);
+    if (i < 0) return;
+    const j = dir === 'up' ? i - 1 : i + 1;
+    if (j < 0 || j >= order.length) return;
+    const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    saveSidebarOrder(order);
+    applySidebarOrder();
+  }
+  function initSidebarOrder() {
+    applySidebarOrder();
+    const nav = document.querySelector('.side-nav');
+    if (nav) {
+      nav.addEventListener('click', e => {
+        const btn = e.target.closest && e.target.closest('.nav-move-btn');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const a = btn.closest('a');
+        if (!a) return;
+        moveSidebarItem(sidebarLinkKey(a), btn.dataset.navMove === 'up' ? 'up' : 'down');
+      });
+    }
+    const toggle = $('sidebarOrderToggle');
+    if (toggle) toggle.addEventListener('click', () => {
+      const on = !document.body.classList.contains('sidebar-ordering');
+      document.body.classList.toggle('sidebar-ordering', on);
+      toggle.classList.toggle('active', on);
+      if (on) toast(lang === 'zh' ? '使用 ▲▼ 调整侧边栏顺序，再次点击结束' : 'Use ▲▼ to reorder; tap again when done');
+    });
   }
 
   /* ---------- Date utilities ---------- */
@@ -2216,8 +2377,28 @@
   }
 
   /* Notifications */
+  function androidNotifyReady() {
+    return !!(window.AndroidBridge && AndroidBridge.notify);
+  }
+  function androidPermissionGranted() {
+    if (!androidNotifyReady()) return false;
+    try {
+      if (typeof AndroidBridge.hasNotificationPermission === 'function') return !!AndroidBridge.hasNotificationPermission();
+    } catch(e) {}
+    return true;
+  }
+  function browserNotifyGranted() {
+    return ('Notification' in window) && Notification.permission === 'granted';
+  }
+  function canNotify() {
+    return androidPermissionGranted() || browserNotifyGranted();
+  }
   function notifyStatusText() {
-    if (window.AndroidBridge && AndroidBridge.notify) return lang === 'zh' ? '✅ 本地应用通知可用' : '✅ Local app notifications available';
+    if (androidNotifyReady()) {
+      return androidPermissionGranted()
+        ? (lang === 'zh' ? '✅ 本地应用通知已开启' : '✅ Local app notifications enabled')
+        : (lang === 'zh' ? '🔕 本地应用通知未开启，点击上方按钮授权' : '🔕 Local app notifications off; tap the button to allow');
+    }
     if (location.protocol === 'file:') return lang === 'zh' ? '本地文件打开时无法授权系统通知，请使用 HTTPS 在线版，或导出日历提醒' : 'Opening as a local file cannot grant system notifications. Use HTTPS online, or export calendar reminders.';
     if (!('Notification' in window)) return lang === 'zh' ? '当前浏览器不支持通知，可用站内提醒' : 'Notifications unsupported; in-page reminders still work';
     if (Notification.permission === 'granted') return lang === 'zh' ? '✅ 通知已开启' : '✅ Notifications enabled';
@@ -2229,13 +2410,20 @@
     if (el) el.textContent = notifyStatusText();
     const btn = $('notifyEnable');
     if (btn) {
-      const granted = 'Notification' in window && Notification.permission === 'granted';
+      const androidReady = androidNotifyReady();
+      const granted = androidReady ? androidPermissionGranted() : browserNotifyGranted();
       btn.textContent = granted ? (lang === 'zh' ? '通知已开启' : 'Notifications On') : (lang === 'zh' ? '开启通知' : 'Enable Notifications');
-      btn.disabled = granted;
-      btn.style.opacity = granted ? '0.6' : '';
+      btn.disabled = androidReady ? granted : browserNotifyGranted();
+      btn.style.opacity = btn.disabled ? '0.6' : '';
     }
   }
   function notifyBrowser(title, body) {
+    if (window.AndroidBridge && AndroidBridge.notifyWithOptions) {
+      try {
+        AndroidBridge.notifyWithOptions(title, body || '', !!(appSettings && appSettings.reminderAlarm), typeof reminderCount === 'function' ? reminderCount() : 0);
+      } catch(e) { AndroidBridge.notify(title, body || ''); }
+      return;
+    }
     if (window.AndroidBridge && AndroidBridge.notify) {
       AndroidBridge.notify(title, body || '');
       return;
@@ -2253,6 +2441,35 @@
       updateNotifyUI();
     }
   }
+  function reminderScheduleSummary() {
+    const dueToday = state.todos.filter(t => t.status !== '已完成' && t.due === todayStr());
+    const habitsLeft = state.habits.filter(h => !h.paused && !(h.records || []).includes(todayStr()));
+    const ups = upcomingDates();
+    const parts = [];
+    if (dueToday.length) parts.push(lang === 'zh' ? '待办 ' + dueToday.length + ' 件' : dueToday.length + ' todo(s)');
+    if (habitsLeft.length) parts.push(lang === 'zh' ? '习惯 ' + habitsLeft.length + ' 个' : habitsLeft.length + ' habit(s)');
+    if (ups.length) {
+      const d = ups[0];
+      parts.push(d.name + (d.days === 0 ? (lang === 'zh' ? ' 就是今天' : ' today') : (lang === 'zh' ? ' ' + d.days + ' 天后' : ' in ' + d.days + ' day(s)')));
+    }
+    return {
+      title: lang === 'zh' ? '📋 花笺今日提醒' : '📋 Huajian daily reminder',
+      body: parts.length ? parts.join(' · ') : (lang === 'zh' ? '今天没有紧急提醒，安心生活吧 ✨' : 'No urgent reminders today ✨'),
+      count: typeof reminderCount === 'function' ? reminderCount() : 0
+    };
+  }
+  function syncReminderSchedule() {
+    if (!window.AndroidBridge || !AndroidBridge.scheduleDailyReminder) return;
+    try {
+      if (!appSettings.reminderEnabled) {
+        if (AndroidBridge.cancelDailyReminder) AndroidBridge.cancelDailyReminder();
+        return;
+      }
+      const summary = reminderScheduleSummary();
+      AndroidBridge.scheduleDailyReminder(appSettings.reminderTime || '09:00', !!appSettings.reminderAlarm, summary.title, summary.body, summary.count);
+    } catch(e) {}
+  }
+
   function buildDailySummary() {
     const dueToday = state.todos.filter(t => t.status !== '已完成' && t.due === todayStr());
     const habitsNotChecked = state.habits.filter(h => !h.paused && !(h.records || []).includes(todayStr()));
@@ -2267,6 +2484,7 @@
     if (window.AndroidBridge && AndroidBridge.requestNotification) {
       AndroidBridge.requestNotification();
       updateNotifyUI();
+      setTimeout(() => { updateNotifyUI(); checkReminders(); }, 1200);
       toast(lang === 'zh' ? '已请求安卓通知权限' : 'Android notification permission requested');
       return;
     }
@@ -2301,7 +2519,7 @@
   }
 
   function checkReminders() {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!canNotify()) { updateNotifyUI(); return; }
     try {
       const lastDate = localStorage.getItem('huajian-remind-date') || '';
       if (lastDate === todayStr()) return;
@@ -2314,19 +2532,18 @@
         title = lang === 'zh' ? '📝 今天有截止待办' : '📝 Todos due today';
         body = dueToday.slice(0, 3).map(t => t.name).join('、');
       } else if (habitsLeft.length) {
-        title = lang === 'zh' ? '🌿 别忘了今天的习惯' : '🌿 Don\'t forget today\'s habits';
+        title = lang === 'zh' ? '🌿 别忘了今天的习惯' : "🌿 Don't forget today's habits";
         body = habitsLeft.slice(0, 3).map(h => h.name).join('、');
       } else if (ups.length && ups[0].days <= 3) {
         title = lang === 'zh' ? '💝 重要日子临近' : '💝 Special day coming soon';
         body = ups[0].name + ' (' + ups[0].days + (lang === 'zh' ? ' 天后)' : ' days)');
       }
       if (title) {
-        try { new Notification(title, { body }); } catch(e) {}
+        notifyBrowser(title, body);
         localStorage.setItem('huajian-remind-date', todayStr());
       }
     } catch(e) {}
   }
-
 
   function reminderCount() {
     const dueToday = state.todos.filter(t => t.status !== '已完成' && t.due === todayStr());
@@ -2350,7 +2567,7 @@
     const habitsLeft = state.habits.filter(h => !h.paused && !(h.records || []).includes(todayStr()));
     const ups = upcomingDates();
     const items = [];
-    if (location.protocol === 'file:') {
+    if (location.protocol === 'file:' && !androidNotifyReady()) {
       items.push('<div class="reminder-item"><span class="r-icon">🔒</span><div><strong>' + (lang === 'zh' ? '系统通知不可用' : 'System notifications unavailable') + '</strong><small>' + (lang === 'zh' ? '本地文件打开时浏览器无法授权系统通知。请使用 HTTPS 在线版，或点击下方导出日历提醒。' : 'A local file cannot grant system notifications. Use the HTTPS online version, or export calendar reminders below.') + '</small></div></div>');
     }
     if (dueToday.length) {
@@ -3016,6 +3233,11 @@
     });
     // Document delegation for actions
     document.addEventListener('click', e => {
+      const catDelBtn = e.target.closest && e.target.closest('.cat-del-btn');
+      if (catDelBtn) {
+        deleteCustomCategory(catDelBtn.dataset.group, catDelBtn.dataset.target);
+        return;
+      }
       const catBtn = e.target.closest && e.target.closest('.cat-add-btn');
       if (catBtn) {
         addCustomCategory(catBtn.dataset.group, catBtn.dataset.target);
@@ -3446,6 +3668,7 @@
     resetTodoForm();
     resetMemoForm();
     initSidebar();
+    initSidebarOrder();
     initSettings();
     renderAll();
     translateStatic();
@@ -3453,6 +3676,8 @@
     bindReminderCenterEvents();
     initPopupUX();
     updateNotifyUI();
+    setTimeout(() => { updateNotifyUI(); checkReminders(); }, 2500);
+    setTimeout(() => { updateNotifyUI(); syncReminderSchedule(); }, 3500);
     setInterval(checkReminders, 60000);
   }
 

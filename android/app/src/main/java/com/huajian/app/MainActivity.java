@@ -65,16 +65,7 @@ public class MainActivity extends Activity {
     }
 
     private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "花笺提醒",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            channel.setDescription("花笺的待办、习惯和重要日期提醒");
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) manager.createNotificationChannel(channel);
-        }
+        ReminderScheduler.createChannels(this);
     }
 
     private Uri saveToDownloads(String filename, String content, String mime) throws Exception {
@@ -102,21 +93,42 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void showNotification(String title, String body) {
+    private String pendingNotificationTitle;
+    private String pendingNotificationBody;
+    private boolean pendingNotificationAlarm = false;
+    private int pendingNotificationBadge = 0;
+
+    private void showNotification(String title, String body, boolean alarm, int badgeCount) {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            pendingNotificationTitle = title;
+            pendingNotificationBody = body;
+            pendingNotificationAlarm = alarm;
+            pendingNotificationBadge = badgeCount;
             requestRuntimePermissions();
             return;
         }
-        Notification.Builder builder = Build.VERSION.SDK_INT >= 26
-                ? new Notification.Builder(this, CHANNEL_ID)
-                : new Notification.Builder(this);
-        builder.setContentTitle(title)
-                .setContentText(body)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setAutoCancel(true)
-                .setStyle(new Notification.BigTextStyle().bigText(body));
-        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (manager != null) manager.notify((int) (System.currentTimeMillis() % 100000), builder.build());
+        ReminderScheduler.notifyNow(this, title, body, alarm, badgeCount);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101) {
+            boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (granted && pendingNotificationTitle != null) {
+                String title = pendingNotificationTitle;
+                String body = pendingNotificationBody;
+                boolean alarm = pendingNotificationAlarm;
+                int badge = pendingNotificationBadge;
+                pendingNotificationTitle = null;
+                pendingNotificationBody = null;
+                showNotification(title, body == null ? "" : body, alarm, badge);
+            } else if (!granted) {
+                pendingNotificationTitle = null;
+                pendingNotificationBody = null;
+                Toast.makeText(this, "通知权限未开启，可在系统设置中开启", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     public class AndroidBridge {
@@ -146,7 +158,27 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void notify(String title, String body) {
-            runOnUiThread(() -> showNotification(title == null ? "花笺提醒" : title, body == null ? "" : body));
+            runOnUiThread(() -> showNotification(title == null ? "花笺提醒" : title, body == null ? "" : body, false, 0));
+        }
+
+        @JavascriptInterface
+        public void notifyWithOptions(String title, String body, boolean alarm, int badgeCount) {
+            runOnUiThread(() -> showNotification(title == null ? "花笺提醒" : title, body == null ? "" : body, alarm, Math.max(0, badgeCount)));
+        }
+
+        @JavascriptInterface
+        public boolean hasNotificationPermission() {
+            return Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        @JavascriptInterface
+        public void scheduleDailyReminder(String time, boolean alarm, String title, String body, int badgeCount) {
+            runOnUiThread(() -> ReminderScheduler.setSchedule(MainActivity.this, time, alarm, title, body, Math.max(0, badgeCount)));
+        }
+
+        @JavascriptInterface
+        public void cancelDailyReminder() {
+            runOnUiThread(() -> ReminderScheduler.cancelAndDisable(MainActivity.this));
         }
 
         @JavascriptInterface
