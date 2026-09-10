@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>花笺 · 选择版本</title>
+<style>
+  :root { --cream:#fbf5e9; --paper:#fffdf7; --green:#2f5847; --dark:#234538; --coral:#f57b6a; --muted:#8a9189; --line:#eadfce; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    min-height:100vh; display:grid; place-items:center; padding:24px;
+    font-family:"Noto Serif SC","Songti SC","PingFang SC","Microsoft YaHei",sans-serif;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(245,123,106,.12), transparent 30%),
+      radial-gradient(circle at 90% 20%, rgba(47,88,71,.12), transparent 32%),
+      var(--cream);
+    color:var(--dark);
+  }
+  .card {
+    width:100%; max-width:520px; background:rgba(255,253,247,.92); border:1px solid var(--line);
+    border-radius:26px; box-shadow:0 20px 50px rgba(63,80,67,.12); padding:34px 28px; text-align:center;
+  }
+  .logo { font-size:50px; margin-bottom:8px; }
+  h1 { font-size:26px; letter-spacing:2px; margin-bottom:6px; }
+  .sub { color:var(--muted); font-size:14px; margin-bottom:24px; }
+  .choices { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  a.choice {
+    display:block; text-decoration:none; color:#fff; background:var(--green); border-radius:18px;
+    padding:18px 12px; font-size:16px; font-weight:700; transition:.15s; box-shadow:0 8px 18px rgba(47,88,71,.15);
+  }
+  a.choice.coral { background:var(--coral); box-shadow:0 8px 18px rgba(245,123,106,.18); }
+  a.choice:hover { transform:translateY(-2px); }
+  .choice small { display:block; font-size:11px; font-weight:400; opacity:.85; margin-top:4px; }
+  .foot { color:var(--muted); font-size:12px; margin-top:20px; }
+  @media (max-width:520px){ .choices { grid-template-columns:1fr; } .card { padding:26px 18px; } }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">🌸</div>
+    <h1>花笺 · 大学生活手记</h1>
+    <div class="sub">请选择要使用的版本 / Choose a version</div>
+    <div class="choices">
+      <a class="choice coral" href="花笺手机版.html">📱 手机版<small>离线多页面 · 无登录</small></a>
+      <a class="choice" href="花笺电脑版.html">💻 电脑版<small>单页全部模块</small></a>
+    </div>
+    <div class="foot">数据保存在当前浏览器本地，不会自动跨设备同步。</div>
+  </main>
+  <script>
+    // 手机访问时自动优先进入手机版，但不影响手动选择。
+    try {
+      var ua = navigator.userAgent || '';
+      if (/Android|iPhone|iPad|iPod|HarmonyOS|Mobile/i.test(ua)) {
+        location.replace('花笺手机版.html');
+      }
+    } catch (e) {}
+  </script>
+</body>
+</html>
