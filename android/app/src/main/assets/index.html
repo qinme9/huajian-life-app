@@ -230,7 +230,9 @@
   .budget-box { background:#f7f1e6; border-radius:18px; padding:16px; margin-bottom:16px; }
   .budget-input { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
   .budget-input .field { flex:1; min-width: 150px; }
-  .budget-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+  .budget-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:10px; margin-top:14px; }
+  .budget-stats .num.income { color:#2d7d5e; }
+  .budget-stats .num.expense, .budget-stats .num.negative { color:#c14e3c; }
   .ledger-form { background:#f7f1e6; border-radius:18px; padding:16px; }
   .ledger-list { margin-top:14px; max-height:420px; overflow:auto; }
   .entry-row { display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dashed #eadfce; font-size:14px; }
@@ -381,6 +383,14 @@
   .export-options.show { display:flex; animation: popupIn .2s ease both; }
   .export-options-toggle::after { content:'  ▾'; font-size:10px; opacity:.65; }
   .export-options-toggle.active::after { content:'  ▴'; }
+  .backup-list { display:flex; flex-direction:column; gap:8px; max-height:46vh; overflow:auto; margin-top:12px; padding:2px; }
+  .backup-item { display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:#fbf7ef; border:1px solid var(--line); border-radius:14px; padding:10px 12px; }
+  .backup-item .backup-info { flex:1 1 160px; min-width:0; }
+  .backup-item strong { display:block; font-size:13px; color:var(--green-dark); word-break:break-all; }
+  .backup-item small { display:block; color:var(--muted); font-size:11px; margin-top:2px; }
+  .backup-actions { display:flex; gap:6px; flex:0 0 auto; }
+  .daily-summary-content { white-space:pre-wrap; line-height:1.75; font-size:14px; color:var(--text); background:#fbf7ef; border:1px solid var(--line); border-radius:14px; padding:12px 14px; max-height:46vh; overflow:auto; }
+  body.theme-dark .backup-item, body.theme-dark .daily-summary-content { background:#1f2a25; border-color:#3d4e45; color:var(--text); }
   .btn-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
   .stat-bars { display:flex; flex-direction:column; gap:10px; }
   .stat-bar-row .sb-label { font-size:12px; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:3px; }
@@ -992,6 +1002,7 @@
           <button class="btn btn-ghost btn-sm export-options-toggle" id="dataExportBtn" data-i18n="tools.export" aria-expanded="false">导出</button>
           <button class="btn btn-light btn-sm" id="dataImportBtn" data-i18n="tools.import">导入</button>
           <button class="btn btn-light btn-sm" id="openDownloadsBtn" data-i18n="tools.openFolder">打开文件夹</button>
+          <button class="btn btn-light btn-sm" id="manageBackupsBtn" data-i18n="tools.manageBackups">管理备份</button>
           <input type="file" id="importFile" class="hidden-file" accept=".json,application/json">
         </div>
         <div class="export-options" id="exportOptions">
@@ -1183,9 +1194,15 @@
             <button class="btn btn-sm" id="budgetSave">保存预算</button>
           </div>
           <div class="budget-stats">
-            <div class="stat"><div class="num" id="budgetUsedNum">0%</div><div class="lbl">已使用</div></div>
-            <div class="stat"><div class="num" id="budgetLeftDays">--</div><div class="lbl">剩余天数</div></div>
-            <div class="stat"><div class="num" id="budgetDaily">--</div><div class="lbl">日均可用</div></div>
+            <div class="stat"><div class="num" id="budgetLeftAmount">--</div><div class="lbl" data-i18n="ledger.leftAmount">本月剩余</div></div>
+            <div class="stat"><div class="num" id="budgetUsedNum">0%</div><div class="lbl" data-i18n="ledger.used">已使用</div></div>
+            <div class="stat"><div class="num" id="budgetLeftDays">--</div><div class="lbl" data-i18n="ledger.leftDays">剩余天数</div></div>
+            <div class="stat"><div class="num" id="budgetDaily">--</div><div class="lbl" data-i18n="ledger.daily">日均可用</div></div>
+          </div>
+          <div class="budget-stats" style="margin-top:10px;">
+            <div class="stat"><div class="num income" id="monthIncome">¥0.00</div><div class="lbl" data-i18n="ledger.income">本月收入</div></div>
+            <div class="stat"><div class="num expense" id="monthExpense">¥0.00</div><div class="lbl" data-i18n="ledger.expense">本月支出</div></div>
+            <div class="stat"><div class="num" id="monthBalance">¥0.00</div><div class="lbl" data-i18n="ledger.balance">本月结余</div></div>
           </div>
         </div>
         <div class="ledger-form">
@@ -1336,8 +1353,29 @@
       <button class="btn btn-ghost btn-sm" id="exportCopyBtn">复制内容</button>
       <button class="btn btn-light btn-sm" id="exportDownloadBtn">下载文件</button>
       <button class="btn btn-light btn-sm" id="exportShareBtn">分享文件</button>
-      <a class="btn btn-ghost btn-sm" id="exportManualLink" download>手动下载</a>
       <button class="btn btn-light btn-sm" id="exportPreviewClose" data-i18n="settings.close">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="modal-mask" id="backupManagerMask">
+  <div class="modal">
+    <h3 data-i18n="tools.backupManagerTitle">📂 备份管理</h3>
+    <div class="sub" data-i18n="tools.backupManagerDesc">备份保存在应用内，可随时恢复或删除</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" id="createBackupBtn" data-i18n="tools.createBackup">立即创建备份</button>
+    </div>
+    <div class="backup-list" id="backupList"></div>
+    <div class="form-actions" style="margin-top:14px;">
+      <button class="btn btn-light btn-sm" id="backupManagerClose" data-i18n="settings.close">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="modal-mask" id="dailySummaryMask">
+  <div class="modal">
+    <h3 data-i18n="reminder.daily">📋 每日摘要</h3>
+    <div class="daily-summary-content" id="dailySummaryContent"></div>
+    <div class="form-actions" style="margin-top:14px;">
+      <button class="btn btn-light btn-sm" id="dailySummaryClose" data-i18n="settings.close">关闭</button>
     </div>
   </div>
 </div>
@@ -1735,7 +1773,7 @@
       'ov.todo':'📋 待办完成度', 'ov.habit':'🌿 习惯打卡', 'ov.date':'💝 最近纪念日', 'ov.budget':'💰 本月预算', 'ov.first':'✨ 人生最新一次',
       'module.todo':'📝 待办事项', 'module.habit':'🌿 习惯打卡', 'module.dates':'💝 重要日期', 'module.ledger':'💰 生活费账本', 'module.first':'✨ 人生第一次', 'module.milestones':'📜 大事记', 'milestones.tool':'把人生里重要的事，按时间收进一本大事记', 'module.memos':'📝 备忘录', 'memos.tool':'随手记下想法、清单和不想忘记的小事',
       'tools.title':'🧰 效率工具', 'tools.subtitle':'备份、统计、专注与提醒都在这里',
-      'tools.data':'📦 数据备份', 'tools.dataDesc':'导出、导入备份，或打开系统下载文件夹', 'tools.export':'导出', 'tools.import':'导入', 'tools.openFolder':'打开文件夹', 'tools.exportJson':'JSON 备份', 'tools.exportIcs':'日历提醒 (.ics)',
+      'tools.data':'📦 数据备份', 'tools.dataDesc':'导出、导入备份，或打开系统下载文件夹', 'tools.export':'导出', 'tools.import':'导入', 'tools.openFolder':'打开文件夹', 'tools.manageBackups':'管理备份', 'tools.exportJson':'JSON 备份', 'tools.exportIcs':'日历提醒 (.ics)', 'tools.backupManagerTitle':'📂 本地备份管理', 'tools.backupManagerDesc':'备份保存在系统下载目录，可随时恢复或删除', 'tools.createBackup':'立即创建本地备份',
       'tools.stats':'📊 数据小统计', 'stats.todo':'待办完成', 'stats.habit':'今日习惯', 'stats.budget':'本月预算',
       'tools.focus':'🍅 专注番茄钟', 'tools.ready':'准备好开始一段专注了吗？', 'tools.start':'开始', 'tools.pause':'暂停', 'tools.reset':'重置',
       'tools.remind':'🔔 提醒与每日摘要', 'tools.notifyDesc':'开启浏览器通知后，页面打开时会在后台检查提醒',
@@ -1743,7 +1781,7 @@
       'todo.add':'＋ 新增待办', 'todo.addTitle':'新增待办', 'todo.name':'任务名称 *', 'todo.type':'所属类型', 'todo.due':'截止日期', 'todo.priority':'优先级', 'todo.status':'状态', 'todo.hours':'预计耗时（小时）', 'todo.repeat':'是否重复', 'todo.cycle':'周期性提醒', 'todo.note':'备注', 'todo.cancel':'取消', 'todo.save':'保存待办', 'todo.edit':'编辑待办', 'todo.delete':'删除', 'todo.saveShort':'保存', 'todo.filter':'按类型筛选', 'todo.all':'全部类型', 'todo.today':'今日', 'todo.future':'未来 7 天', 'todo.overdue':'已逾期', 'todo.done':'已完成',
       'habit.title':'🌿 习惯打卡', 'habit.tool':'每天点亮一朵小花，连续的日子会连成花环', 'habit.new':'新习惯名称', 'habit.add':'＋ 新增习惯', 'habit.pause':'暂停', 'habit.resume':'恢复', 'habit.check':'☑ 打卡', 'habit.doneToday':'今日已打卡 ✓', 'habit.streak':'连续天数', 'habit.total':'总次数', 'habit.paused':'已暂停',
       'dates.title':'💝 重要日期', 'dates.tool':'把期待写在倒计时里，准备也在一点点完成', 'dates.add':'✚ 添加重要日期', 'dates.addHint':'重复可自定义', 'dates.name':'名称 *', 'dates.type':'类型', 'dates.date':'起始日期 *', 'dates.repeat':'重复规则', 'dates.every':'每', 'dates.everyUnit':'天/周/月/年', 'dates.customHint':'重复一次（仅“自定义间隔”时生效）', 'dates.addBtn':'＋ 添加',
-      'ledger.title':'💰 生活费账本', 'ledger.tool':'输入说明「食堂午餐」会自动归类为餐饮', 'ledger.budget':'🎯 月预算设置', 'ledger.month':'预算月份', 'ledger.amount':'预算金额', 'ledger.saveBudget':'保存预算', 'ledger.used':'已使用', 'ledger.leftDays':'剩余天数', 'ledger.daily':'日均可用', 'ledger.entry':'记一笔', 'ledger.date':'日期', 'ledger.incomeType':'收支类型', 'ledger.category':'消费分类', 'ledger.money':'金额 *', 'ledger.pay':'支付方式', 'ledger.desc':'消费说明（试试“食堂午餐”）', 'ledger.add':'记入账本', 'ledger.records':'📒 流水记录',
+      'ledger.title':'💰 生活费账本', 'ledger.tool':'输入说明「食堂午餐」会自动归类为餐饮', 'ledger.budget':'🎯 月预算设置', 'ledger.month':'预算月份', 'ledger.amount':'预算金额', 'ledger.saveBudget':'保存预算', 'ledger.leftAmount':'本月剩余', 'ledger.used':'已使用', 'ledger.leftDays':'剩余天数', 'ledger.daily':'日均可用', 'ledger.income':'本月收入', 'ledger.expense':'本月支出', 'ledger.balance':'本月结余', 'ledger.entry':'记一笔', 'ledger.date':'日期', 'ledger.incomeType':'收支类型', 'ledger.category':'消费分类', 'ledger.money':'金额 *', 'ledger.pay':'支付方式', 'ledger.desc':'消费说明（试试“食堂午餐”）', 'ledger.add':'记入账本', 'ledger.records':'📒 流水记录',
       'first.title':'✨ 人生第一次', 'first.tool':'第一次也许很小，但都值得郑重收藏', 'first.add':'记录一个新第一次', 'first.name':'事件名称 *', 'first.category':'分类', 'first.date':'日期', 'first.desc':'一句话描述', 'first.save':'收藏这个第一次', 'settings.title':'⚙️ 设置', 'settings.motion':'动画效果', 'settings.motionDesc':'关闭后减少页面过渡和动画，提升流畅度', 'settings.blur':'毛玻璃效果', 'settings.blurDesc':'自动：手机端关闭，电脑端保留；也可强制开启或关闭', 'settings.blurAuto':'自动', 'settings.blurOn':'开启', 'settings.blurOff':'关闭', 'settings.close':'关闭', 'settings.theme':'主题模式', 'settings.themeDesc':'浅色 / 深色 / 跟随系统', 'settings.themeAuto':'跟随系统', 'settings.themeLight':'浅色', 'settings.themeDark':'深色', 'settings.lang':'界面语言', 'settings.langDesc':'中文 / English', 'settings.langZh':'中文', 'settings.langEn':'English', 'settings.density':'界面密度', 'settings.densityDesc':'宽松 / 标准 / 紧凑', 'settings.densityWide':'宽松', 'settings.densityNormal':'标准', 'settings.densityCompact':'紧凑', 'settings.sidebarSide':'侧边栏位置', 'settings.sidebarDesc':'左侧或右侧显示', 'settings.sidebarLeft':'左侧', 'settings.sidebarRight':'右侧', 'settings.reminderEnabled':'每日提醒', 'settings.reminderEnabledDesc':'开启或关闭每日通知', 'settings.reminderTime':'提醒时间', 'settings.reminderTimeDesc':'每天在这个时间提醒', 'settings.reminderAlarm':'提醒声音', 'settings.reminderAlarmDesc':'普通通知音或闹铃', 'settings.reminderAlarmNormal':'通知音', 'settings.reminderAlarmRing':'闹铃', 'settings.mobileStart':'手机版启动页', 'settings.mobileStartDesc':'手机版打开时默认进入的页面', 'settings.pageHome':'首页', 'settings.pageTodo':'待办', 'settings.pageHabit':'习惯', 'settings.pageDates':'重要日期', 'settings.pageLedger':'账本', 'settings.pageFirst':'人生第一次', 'settings.pageMilestones':'大事记', 'settings.pageMemos':'备忘录', 'settings.clearData':'清空所有数据', 'settings.palette':'配色主题', 'settings.paletteDesc':'在日间 / 夜间模式之外选择更多配色', 'settings.paletteClassic':'经典花笺', 'settings.paletteSakura':'樱花粉', 'settings.paletteMint':'薄荷青', 'settings.paletteOcean':'海盐蓝', 'settings.paletteSunset':'暖阳橘', 'settings.paletteViolet':'紫藤', 'settings.popupMode':'弹窗模式', 'settings.popupModeDesc':'底部卡片 / 居中弹窗 / 自动', 'settings.popupAuto':'自动', 'settings.popupSheet':'底部卡片', 'settings.popupCenter':'居中弹窗', 'reminder.title':'🔔 提醒中心', 'reminder.enable':'开启通知', 'reminder.test':'测试通知', 'reminder.daily':'每日摘要', 'reminder.close':'关闭', 'reminder.todo':'今日待办', 'reminder.habit':'未打卡习惯', 'reminder.date':'临近重要日期', 'reminder.none':'今天没有紧急提醒，安心生活吧 ✨', 'reminder.exportIcs':'导出日历提醒', 'reminder.fileNoticeTitle':'系统通知不可用', 'reminder.fileNotice':'当前以本地文件打开，浏览器无法授权系统通知。请用 HTTPS 在线版，或导出 .ics 到手机日历。'
     },
 
@@ -1756,7 +1794,7 @@
       'ov.todo':'📋 Todo Progress', 'ov.habit':'🌿 Habit Check-ins', 'ov.date':'💝 Next Special Day', 'ov.budget':'💰 Monthly Budget', 'ov.first':'✨ Latest First Time',
       'module.todo':'📝 Todos', 'module.habit':'🌿 Habit Tracking', 'module.dates':'💝 Important Dates', 'module.ledger':'💰 Expense Ledger', 'module.first':'✨ First-Time Experiences', 'module.milestones':'📜 Chronicle', 'milestones.tool':'Keep the important moments of your life in a timeline', 'module.memos':'📝 Memos', 'memos.tool':'Jot down ideas, lists, and little things you do not want to forget',
       'tools.title':'🧰 Utility Tools', 'tools.subtitle':'Backup, stats, focus timer, and reminders',
-      'tools.data':'📦 Data Backup', 'tools.dataDesc':'Export, import backups, or open the Downloads folder', 'tools.export':'Export', 'tools.import':'Import', 'tools.openFolder':'Open folder', 'tools.exportJson':'JSON backup', 'tools.exportIcs':'Calendar reminders (.ics)',
+      'tools.data':'📦 Data Backup', 'tools.dataDesc':'Export, import backups, or open the Downloads folder', 'tools.export':'Export', 'tools.import':'Import', 'tools.openFolder':'Open folder', 'tools.manageBackups':'Manage backups', 'tools.exportJson':'JSON backup', 'tools.exportIcs':'Calendar reminders (.ics)', 'tools.backupManagerTitle':'📂 Local Backup Manager', 'tools.backupManagerDesc':'Backups are saved in your Downloads folder and can be restored or deleted anytime', 'tools.createBackup':'Create local backup now',
       'tools.stats':'📊 Quick Statistics', 'stats.todo':'Todos done', 'stats.habit':'Habits today', 'stats.budget':'Budget used',
       'tools.focus':'🍅 Focus Timer', 'tools.ready':'Ready to start a focus session?', 'tools.start':'Start', 'tools.pause':'Pause', 'tools.reset':'Reset',
       'tools.remind':'🔔 Reminders & Daily Summary', 'tools.notifyDesc':'After enabling notifications, reminders are checked while the page is open',
@@ -1764,7 +1802,7 @@
       'todo.add':'＋ Add Todo', 'todo.addTitle':'New Todo', 'todo.name':'Task name *', 'todo.type':'Type', 'todo.due':'Due date', 'todo.priority':'Priority', 'todo.status':'Status', 'todo.hours':'Est. hours', 'todo.repeat':'Repeat', 'todo.cycle':'Recurring reminder', 'todo.note':'Note', 'todo.cancel':'Cancel', 'todo.save':'Save Todo', 'todo.edit':'Edit Todo', 'todo.delete':'Delete', 'todo.saveShort':'Save', 'todo.filter':'Filter by type', 'todo.all':'All types', 'todo.today':'Today', 'todo.future':'Next 7 Days', 'todo.overdue':'Overdue', 'todo.done':'Completed',
       'habit.title':'🌿 Habit Tracking', 'habit.tool':'Light a small flower every day; continuous days become a garland', 'habit.new':'New habit name', 'habit.add':'＋ Add Habit', 'habit.pause':'Pause', 'habit.resume':'Resume', 'habit.check':'☑ Check in', 'habit.doneToday':'Checked today ✓', 'habit.streak':'Streak', 'habit.total':'Total', 'habit.paused':'Paused',
       'dates.title':'💝 Important Dates', 'dates.tool':'Write expectations into countdowns; preparations grow day by day', 'dates.add':'✚ Add Important Date', 'dates.addHint':'Custom repeat available', 'dates.name':'Name *', 'dates.type':'Type', 'dates.date':'Start date *', 'dates.repeat':'Repeat rule', 'dates.every':'Every', 'dates.everyUnit':'day/week/month/year', 'dates.customHint':'Repeats once (only for Custom interval)', 'dates.addBtn':'＋ Add',
-      'ledger.title':'💰 Expense Ledger', 'ledger.tool':'Entering “食堂午餐” auto-categorizes as Dining', 'ledger.budget':'🎯 Monthly Budget', 'ledger.month':'Budget month', 'ledger.amount':'Budget amount', 'ledger.saveBudget':'Save Budget', 'ledger.used':'Used', 'ledger.leftDays':'Days left', 'ledger.daily':'Daily available', 'ledger.entry':'Add Entry', 'ledger.date':'Date', 'ledger.incomeType':'Income/Expense', 'ledger.category':'Category', 'ledger.money':'Amount *', 'ledger.pay':'Payment method', 'ledger.desc':'Description (try “食堂午餐”)', 'ledger.add':'Add Entry', 'ledger.records':'📒 Entries',
+      'ledger.title':'💰 Expense Ledger', 'ledger.tool':'Entering “食堂午餐” auto-categorizes as Dining', 'ledger.budget':'🎯 Monthly Budget', 'ledger.month':'Budget month', 'ledger.amount':'Budget amount', 'ledger.saveBudget':'Save Budget', 'ledger.leftAmount':'Left this month', 'ledger.used':'Used', 'ledger.leftDays':'Days left', 'ledger.daily':'Daily available', 'ledger.income':'Income this month', 'ledger.expense':'Expense this month', 'ledger.balance':'Balance this month', 'ledger.entry':'Add Entry', 'ledger.date':'Date', 'ledger.incomeType':'Income/Expense', 'ledger.category':'Category', 'ledger.money':'Amount *', 'ledger.pay':'Payment method', 'ledger.desc':'Description (try “食堂午餐”)', 'ledger.add':'Add Entry', 'ledger.records':'📒 Entries',
       'first.title':'✨ First-Time Experiences', 'first.tool':'First times can be small, yet still worth treasuring', 'first.add':'Record a New First', 'first.name':'Event name *', 'first.category':'Category', 'first.date':'Date', 'first.desc':'One-line description', 'first.save':'Save First Experience', 'settings.title':'⚙️ Settings', 'settings.motion':'Animations', 'settings.motionDesc':'Turn off to reduce transitions and animations for smoother scrolling', 'settings.blur':'Frosted glass', 'settings.blurDesc':'Auto: off on mobile, on on desktop. You can also force it on or off.', 'settings.blurAuto':'Auto', 'settings.blurOn':'On', 'settings.blurOff':'Off', 'settings.close':'Close', 'settings.theme':'Theme mode', 'settings.themeDesc':'Light / Dark / System', 'settings.themeAuto':'Follow system', 'settings.themeLight':'Light', 'settings.themeDark':'Dark', 'settings.lang':'Language', 'settings.langDesc':'中文 / English', 'settings.langZh':'中文', 'settings.langEn':'English', 'settings.density':'Density', 'settings.densityDesc':'Wide / Normal / Compact', 'settings.densityWide':'Wide', 'settings.densityNormal':'Normal', 'settings.densityCompact':'Compact', 'settings.sidebarSide':'Sidebar side', 'settings.sidebarDesc':'Show on left or right', 'settings.sidebarLeft':'Left', 'settings.sidebarRight':'Right', 'settings.reminderEnabled':'Daily reminder', 'settings.reminderEnabledDesc':'Turn the daily notification on or off', 'settings.reminderTime':'Reminder time', 'settings.reminderTimeDesc':'Notify me at this time every day', 'settings.reminderAlarm':'Reminder sound', 'settings.reminderAlarmDesc':'Notification sound or alarm', 'settings.reminderAlarmNormal':'Notification sound', 'settings.reminderAlarmRing':'Alarm', 'settings.mobileStart':'Mobile start page', 'settings.mobileStartDesc':'Default page when opening on mobile', 'settings.pageHome':'Home', 'settings.pageTodo':'Todos', 'settings.pageHabit':'Habits', 'settings.pageDates':'Dates', 'settings.pageLedger':'Ledger', 'settings.pageFirst':'First Times', 'settings.pageMilestones':'Chronicle', 'settings.pageMemos':'Memos', 'settings.clearData':'Clear all data', 'settings.palette':'Color theme', 'settings.paletteDesc':'Choose more color themes beyond light / dark mode', 'settings.paletteClassic':'Classic', 'settings.paletteSakura':'Sakura Pink', 'settings.paletteMint':'Mint', 'settings.paletteOcean':'Ocean Blue', 'settings.paletteSunset':'Sunset Orange', 'settings.paletteViolet':'Violet', 'settings.popupMode':'Popup mode', 'settings.popupModeDesc':'Bottom sheet / Center / Auto', 'settings.popupAuto':'Auto', 'settings.popupSheet':'Bottom sheet', 'settings.popupCenter':'Center', 'reminder.title':'🔔 Reminder Center', 'reminder.enable':'Enable Notifications', 'reminder.test':'Test Notification', 'reminder.daily':'Daily Summary', 'reminder.close':'Close', 'reminder.todo':'Todos today', 'reminder.habit':'Habits left', 'reminder.date':'Upcoming date', 'reminder.none':'No urgent reminders today. Enjoy your day ✨', 'reminder.exportIcs':'Export calendar reminders', 'reminder.fileNoticeTitle':'System notifications unavailable', 'reminder.fileNotice':'Opened as a local file, the browser cannot grant system notification permission. Use the HTTPS online version, or export .ics to your phone calendar.'
     }
   };
@@ -2254,10 +2292,9 @@
     setTimeout(() => {
       try { a.remove(); URL.revokeObjectURL(url); } catch(e) {}
     }, 15000);
-    toast(lang === 'zh' ? '已触发下载。如果没有在 Download 里看到，请用预览窗口里的「手动下载」或浏览器菜单保存' : 'Download triggered. If you cannot find it, use the manual download link in the preview or your browser menu.');
+    toast(lang === 'zh' ? '已触发下载。如果没有在下载目录看到，请用预览窗口里的「下载文件」或浏览器菜单保存' : 'Download triggered. If you cannot find it, use the download button in the preview or your browser menu.');
   }
   let currentExportData = null;
-  let currentExportBlobUrl = null;
   function buildBackupPayload() {
     return JSON.stringify({
       app: 'huajian-life-dashboard',
@@ -2289,15 +2326,6 @@
       ? (lang === 'zh' ? '📦 JSON 备份内容' : '📦 JSON backup')
       : (lang === 'zh' ? '📅 日历提醒内容 (.ics)' : '📅 Calendar reminders (.ics)');
     $('exportPreviewText').value = data.content;
-    try {
-      if (currentExportBlobUrl) URL.revokeObjectURL(currentExportBlobUrl);
-      currentExportBlobUrl = URL.createObjectURL(new Blob([data.content], { type: data.mime }));
-      const link = $('exportManualLink');
-      if (link) {
-        link.href = currentExportBlobUrl;
-        link.download = data.filename;
-      }
-    } catch(e) {}
     $('exportPreviewMask').classList.add('show');
   }
   function fallbackCopy(text) {
@@ -2327,46 +2355,124 @@
     downloadBlob(currentExportData.filename, blob);
   }
 
+  function applyImportedData(text) {
+    const parsed = JSON.parse(text);
+    const raw = parsed && parsed.state ? parsed.state : parsed;
+    if (!raw || !Array.isArray(raw.todos)) throw new Error('invalid');
+    state = Object.assign(defaultState(), raw);
+    state.dates.forEach(normalizeDateRepeat);
+
+    if (parsed && parsed.settings && typeof parsed.settings === 'object') {
+      appSettings = Object.assign(appSettings, parsed.settings);
+      saveSettings();
+      loadSettings();
+      applySettings();
+      updateSettingsUI();
+    }
+    if (parsed && parsed.sidebar && typeof parsed.sidebar === 'object') {
+      sidebarPref = Object.assign(sidebarPref, parsed.sidebar);
+      saveSidebarPref();
+      loadSidebarPref();
+      applySidebar();
+    }
+    if (parsed && Array.isArray(parsed.sidebarOrder)) {
+      const order = parsed.sidebarOrder.filter(k => SIDEBAR_PAGE_KEYS.includes(k));
+      if (order.length) {
+        saveSidebarOrder(order);
+        applySidebarOrder();
+      }
+    }
+    populateCustomCategories();
+    save();
+    renderAll();
+    translateStatic();
+  }
   function importData(file) {
     const reader = new FileReader();
     reader.onload = e => {
       try {
-        const parsed = JSON.parse(e.target.result);
-        const raw = parsed && parsed.state ? parsed.state : parsed;
-        if (!raw || !Array.isArray(raw.todos)) throw new Error('invalid');
-        state = Object.assign(defaultState(), raw);
-        state.dates.forEach(normalizeDateRepeat);
-
-        if (parsed && parsed.settings && typeof parsed.settings === 'object') {
-          appSettings = Object.assign(appSettings, parsed.settings);
-          saveSettings();
-          loadSettings();
-          applySettings();
-          updateSettingsUI();
-        }
-        if (parsed && parsed.sidebar && typeof parsed.sidebar === 'object') {
-          sidebarPref = Object.assign(sidebarPref, parsed.sidebar);
-          saveSidebarPref();
-          loadSidebarPref();
-          applySidebar();
-        }
-        if (parsed && Array.isArray(parsed.sidebarOrder)) {
-          const order = parsed.sidebarOrder.filter(k => SIDEBAR_PAGE_KEYS.includes(k));
-          if (order.length) {
-            saveSidebarOrder(order);
-            applySidebarOrder();
-          }
-        }
-        populateCustomCategories();
-        save();
-        renderAll();
-        translateStatic();
+        applyImportedData(e.target.result);
         toast(lang === 'zh' ? '数据导入成功' : 'Data imported successfully');
       } catch (err) {
         toast(lang === 'zh' ? '导入失败：文件格式不正确' : 'Import failed: invalid file');
       }
     };
+    reader.onerror = () => toast(lang === 'zh' ? '读取导入文件失败' : 'Failed to read import file');
     reader.readAsText(file);
+  }
+
+  function formatBackupTime(ts) {
+    try { return new Date(Number(ts) || Date.now()).toLocaleString(); } catch(e) { return ''; }
+  }
+  function refreshBackupList() {
+    const box = $('backupList');
+    if (!box) return;
+    if (!(window.AndroidBridge && AndroidBridge.listAppBackups)) {
+      box.innerHTML = '<div class="empty">' + (lang === 'zh' ? '当前环境不支持应用内备份管理' : 'In-app backup management is unavailable here') + '</div>';
+      return;
+    }
+    let list = [];
+    try { list = JSON.parse(AndroidBridge.listAppBackups() || '[]'); } catch(e) { list = []; }
+    if (!Array.isArray(list) || !list.length) {
+      box.innerHTML = '<div class="empty">' + (lang === 'zh' ? '下载目录里还没有本地备份' : 'No local backups in Downloads yet') + '</div>';
+      return;
+    }
+    box.innerHTML = list.map(item => {
+      const size = item && item.size ? (Number(item.size) / 1024).toFixed(1) + ' KB' : '';
+      return '<div class="backup-item">' +
+        '<div class="backup-info"><strong>' + esc(item.name || '') + '</strong><small>' + formatBackupTime(item.time) + (size ? ' · ' + size : '') + '</small></div>' +
+        '<div class="backup-actions">' +
+          '<button class="btn btn-ghost btn-sm" data-restore-backup="' + esc(item.name || '') + '">' + (lang === 'zh' ? '恢复' : 'Restore') + '</button>' +
+          '<button class="btn btn-light btn-sm" data-delete-backup="' + esc(item.name || '') + '">' + (lang === 'zh' ? '删除' : 'Delete') + '</button>' +
+        '</div></div>';
+    }).join('');
+  }
+  function openBackupManager() {
+    const mask = $('backupManagerMask');
+    if (mask) mask.classList.add('show');
+    refreshBackupList();
+  }
+  function createInAppBackup() {
+    if (!(window.AndroidBridge && AndroidBridge.createAppBackup)) {
+      toast(lang === 'zh' ? '仅本地 APK 支持应用内备份' : 'In-app backups require the local APK');
+      return;
+    }
+    const now = new Date();
+    const time = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+    const name = 'huajian-backup-' + todayStr() + '-' + time + '.json';
+    const ok = AndroidBridge.createAppBackup(name, buildBackupPayload());
+    toast(ok ? (lang === 'zh' ? '已创建本地备份，可在系统下载目录查看' : 'Local backup created in Downloads') : (lang === 'zh' ? '创建备份失败' : 'Failed to create backup'));
+    refreshBackupList();
+  }
+  function restoreInAppBackup(name) {
+    if (!(window.AndroidBridge && AndroidBridge.readAppBackup)) return;
+    const content = AndroidBridge.readAppBackup(name);
+    if (!content) { toast(lang === 'zh' ? '读取备份失败' : 'Failed to read backup'); return; }
+    const ok = confirm(lang === 'zh' ? '确定用「' + name + '」恢复吗？当前数据会被覆盖。' : 'Restore from "' + name + '"? Current data will be overwritten.');
+    if (!ok) return;
+    try {
+      applyImportedData(content);
+      const mask = $('backupManagerMask');
+      if (mask) mask.classList.remove('show');
+      toast(lang === 'zh' ? '已从应用内备份恢复' : 'Restored from in-app backup');
+    } catch(e) {
+      toast(lang === 'zh' ? '恢复失败：备份文件格式不正确' : 'Restore failed: invalid backup');
+    }
+  }
+  function deleteInAppBackup(name) {
+    if (!(window.AndroidBridge && AndroidBridge.deleteAppBackup)) return;
+    const ok = confirm(lang === 'zh' ? '确定删除备份「' + name + '」吗？' : 'Delete backup "' + name + '"?');
+    if (!ok) return;
+    const done = AndroidBridge.deleteAppBackup(name);
+    toast(done ? (lang === 'zh' ? '已删除备份' : 'Backup deleted') : (lang === 'zh' ? '删除失败' : 'Delete failed'));
+    refreshBackupList();
+  }
+  function openDailySummary() {
+    const content = buildDailySummary();
+    const el = $('dailySummaryContent');
+    if (el) el.textContent = content;
+    const mask = $('dailySummaryMask');
+    if (mask) mask.classList.add('show');
   }
 
   /* Pomodoro */
@@ -2586,15 +2692,95 @@
   }
 
   function buildDailySummary() {
+    const now = new Date();
+    const weekdayZh = ['日','一','二','三','四','五','六'][now.getDay()];
+    const hour = now.getHours();
+    const greeting = hour < 6 ? '夜深了' : hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
+    const quotesZh = [
+      '慢慢来，今天也在一点点变好。',
+      '把重要的事做好，也别忘了照顾自己。',
+      '今天适合完成一件拖了很久的小事。',
+      '不必事事完美，先行动起来就很好。',
+      '给今天留一点空白，也留一点期待。',
+      '你已经做得很好了，继续保持呀。',
+      '把日子过成自己喜欢的样子。',
+      '认真生活的每一天，都算数。'
+    ];
+    const quotesEn = [
+      'Take it slow. You are getting a little better every day.',
+      'Do the important things, and remember to take care of yourself.',
+      'Today is a good day to finish one small thing you have been putting off.',
+      'You do not need everything to be perfect. Just start.',
+      'Leave a little space and a little hope for today.',
+      'You are doing well. Keep going.',
+      'Live your days in the way you like.',
+      'Every day you live with care counts.'
+    ];
+    const quoteIndex = (now.getFullYear() * 372 + (now.getMonth() + 1) * 31 + now.getDate()) % quotesZh.length;
+    const quote = lang === 'zh' ? quotesZh[quoteIndex] : quotesEn[quoteIndex];
     const dueToday = state.todos.filter(t => t.status !== '已完成' && t.due === todayStr());
-    const habitsNotChecked = state.habits.filter(h => !h.paused && !(h.records || []).includes(todayStr()));
+    const doneToday = state.todos.filter(t => t.status === '已完成' && t.due === todayStr());
+    const activeHabits = state.habits.filter(h => !h.paused);
+    const checkedToday = activeHabits.filter(h => (h.records || []).includes(todayStr())).length;
+    const habitsNotChecked = activeHabits.filter(h => !(h.records || []).includes(todayStr()));
     const ups = upcomingDates();
-    let lines = [];
-    if (dueToday.length) lines.push((lang === 'zh' ? '今日待办 ' : 'Todos today: ') + dueToday.length + (lang === 'zh' ? ' 件' : ''));
-    if (habitsNotChecked.length) lines.push((lang === 'zh' ? '还有 ' : 'Remaining habits: ') + habitsNotChecked.length + (lang === 'zh' ? ' 个习惯未打卡' : ''));
-    if (ups.length) lines.push((lang === 'zh' ? '最近重要日期：' : 'Next important date: ') + ups[0].name + (ups[0].days === 0 ? (lang === 'zh' ? '（就是今天）' : ' (today)') : ' (' + ups[0].days + (lang === 'zh' ? ' 天后)' : ' days)')));
-    return lines.length ? lines.join('\n') : (lang === 'zh' ? '今天一切都在轨道上 ✨' : 'Everything is on track today ✨');
+    const month = todayStr().slice(0, 7);
+    const budgetRaw = state.budgets ? state.budgets[month] : undefined;
+    const budget = Number(budgetRaw);
+    const hasBudget = budgetRaw !== undefined && budgetRaw !== '' && !isNaN(budget);
+    const expense = typeof getMonthExpenseTotal === 'function' ? getMonthExpenseTotal(month) : 0;
+    const milestones = Array.isArray(state.milestones) ? state.milestones : [];
+    const memos = Array.isArray(state.memos) ? state.memos : [];
+    const lines = [];
+
+    if (lang === 'zh') {
+      lines.push('📅 ' + now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日 星期' + weekdayZh);
+      lines.push(greeting + '，' + quote);
+      if (dueToday.length) {
+        lines.push('📝 今日待办 ' + dueToday.length + ' 件' + (doneToday.length ? '，已完成 ' + doneToday.length + ' 件' : '') + '：' + dueToday.slice(0, 3).map(t => t.name).join('、') + (dueToday.length > 3 ? ' 等' : ''));
+      } else if (doneToday.length) {
+        lines.push('📝 今天没有未完成待办，已完成 ' + doneToday.length + ' 件，辛苦了。');
+      } else {
+        lines.push('📝 今天没有截止待办，可以安排一点喜欢的事。');
+      }
+      if (activeHabits.length) {
+        if (habitsNotChecked.length) lines.push('🌿 习惯打卡 ' + checkedToday + '/' + activeHabits.length + '，还有 ' + habitsNotChecked.length + ' 个未完成：' + habitsNotChecked.slice(0, 3).map(h => h.name).join('、'));
+        else lines.push('🌿 习惯打卡 ' + checkedToday + '/' + activeHabits.length + '，今天全部完成啦！');
+      } else {
+        lines.push('🌿 还没有添加习惯，可以从一个小习惯开始。');
+      }
+      if (ups.length) lines.push('💝 最近的特别日子：' + ups[0].name + (ups[0].days === 0 ? '（就是今天）' : '（' + ups[0].days + ' 天后）'));
+      else lines.push('💝 还没有设置重要日期，可以记下一个值得期待的日子。');
+      if (hasBudget) lines.push('💰 本月预算 ' + budget + ' 元，已支出 ' + expense + ' 元，剩余 ' + Math.max(0, budget - expense) + ' 元。');
+      else lines.push('💰 本月已记录支出 ' + expense + ' 元，还没设置预算。');
+      if (milestones.length) lines.push('📜 大事记里已经收藏了 ' + milestones.length + ' 件值得记住的事。');
+      if (memos.length) lines.push('🗒️ 备忘录里还有 ' + memos.length + ' 条记录。');
+    } else {
+      lines.push('📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+      lines.push(greeting === '夜深了' ? 'It is late. Rest well.' : greeting + ', ' + quote);
+      if (dueToday.length) {
+        lines.push('📝 Todos due today: ' + dueToday.length + (doneToday.length ? ', completed: ' + doneToday.length : '') + '. ' + dueToday.slice(0, 3).map(t => t.name).join(', ') + (dueToday.length > 3 ? ', etc.' : ''));
+      } else if (doneToday.length) {
+        lines.push('📝 No todos left today. You completed ' + doneToday.length + '. Well done.');
+      } else {
+        lines.push('📝 No todos due today. Leave some time for what you enjoy.');
+      }
+      if (activeHabits.length) {
+        if (habitsNotChecked.length) lines.push('🌿 Habits: ' + checkedToday + '/' + activeHabits.length + '. Still left: ' + habitsNotChecked.slice(0, 3).map(h => h.name).join(', '));
+        else lines.push('🌿 Habits: ' + checkedToday + '/' + activeHabits.length + '. All done today!');
+      } else {
+        lines.push('🌿 No habits yet. Start with one small habit.');
+      }
+      if (ups.length) lines.push('💝 Next special day: ' + ups[0].name + (ups[0].days === 0 ? ' (today)' : ' (in ' + ups[0].days + ' days)'));
+      else lines.push('💝 No important dates yet. Add one to look forward to.');
+      if (hasBudget) lines.push('💰 Monthly budget: ' + budget + ', spent: ' + expense + ', left: ' + Math.max(0, budget - expense) + '.');
+      else lines.push('💰 Spent this month: ' + expense + '. No budget set yet.');
+      if (milestones.length) lines.push('📜 Your chronicle has ' + milestones.length + ' memorable moments.');
+      if (memos.length) lines.push('🗒️ You have ' + memos.length + ' memo(s).');
+    }
+    return lines.join('\n');
   }
+
   function requestNotifyPermission() {
     if (window.AndroidBridge && AndroidBridge.requestNotification) {
       AndroidBridge.requestNotification();
@@ -2730,7 +2916,7 @@
       if (mask) mask.addEventListener('click', e => { if (e.target === mask) mask.classList.remove('show'); });
       if ($('reminderEnable')) $('reminderEnable').addEventListener('click', requestNotifyPermission);
       if ($('reminderTest')) $('reminderTest').addEventListener('click', () => notifyBrowser(lang === 'zh' ? '🌸 花笺测试通知' : '🌸 Huajian test notification', lang === 'zh' ? '如果你看到这条，通知已经准备好了' : 'If you see this, notifications are ready'));
-      if ($('reminderDaily')) $('reminderDaily').addEventListener('click', () => notifyBrowser(lang === 'zh' ? '📋 每日摘要' : '📋 Daily Summary', buildDailySummary()));
+      if ($('reminderDaily')) $('reminderDaily').addEventListener('click', openDailySummary);
     }
   }
 
@@ -2780,9 +2966,10 @@
     const budget = state.budgets[budgetMonth];
     const expenses = getMonthExpenseTotal(budgetMonth);
     const bPct = budget ? Math.min(100, Math.round(expenses/budget*100)) : 0;
+    const budgetRemaining = budget ? Number(budget) - expenses : 0;
     $('ovBudgetPct').textContent = budget ? bPct + '%' : '未设置';
     $('ovBudgetBar').style.width = (budget ? bPct : 0) + '%';
-    $('ovBudgetSub').textContent = budget ? `已用 ¥${expenses.toFixed(2)} / ¥${budget.toFixed(2)}` : '设置月预算开始管理吧';
+    $('ovBudgetSub').textContent = budget ? `剩余 ¥${budgetRemaining.toFixed(2)} · 已用 ¥${expenses.toFixed(2)}` : '设置月预算开始管理吧';
 
     const latestFirsts = [...state.firsts].sort((a,b) => (b.date||'').localeCompare(a.date||''));
     const latest = latestFirsts[0];
@@ -3046,6 +3233,9 @@
   function getMonthExpenseTotal(month) {
     return state.entries.filter(e => e.type === '支出' && e.date && e.date.startsWith(month)).reduce((s,e) => s + Number(e.amount || 0), 0);
   }
+  function getMonthIncomeTotal(month) {
+    return state.entries.filter(e => e.type === '收入' && e.date && e.date.startsWith(month)).reduce((s,e) => s + Number(e.amount || 0), 0);
+  }
   function getMonthEntryList(month) {
     return state.entries.filter(e => e.date && e.date.startsWith(month)).sort((a,b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   }
@@ -3058,11 +3248,28 @@
     const daysInMonth = new Date(Number(month.slice(0,4)), Number(month.slice(5,7)), 0).getDate();
     const todayDay = Number(todayStr().slice(8,10));
     const daysLeftLabel = month === todayStr().slice(0,7) ? Math.max(1, daysInMonth - todayDay + 1) : daysInMonth;
-    const usedPct = budget ? Math.min(100, Math.round(expense/budget*100)) : 0;
-    const daily = budget ? Math.max(0, (Number(budget)-expense) / Math.max(1, daysLeftLabel)) : 0;
+    const income = getMonthIncomeTotal(month);
+    const balance = income - expense;
+    const budgetNum = budget ? Number(budget) : 0;
+    const remaining = budget ? budgetNum - expense : 0;
+    const usedPct = budget ? Math.min(100, Math.round(expense/budgetNum*100)) : 0;
+    const daily = budget ? Math.max(0, remaining / Math.max(1, daysLeftLabel)) : 0;
     $('budgetUsedNum').textContent = budget ? usedPct + '%' : '--';
     $('budgetLeftDays').textContent = month === todayStr().slice(0,7) ? Math.max(0, daysInMonth - todayDay) : daysInMonth;
     $('budgetDaily').textContent = budget ? '¥' + daily.toFixed(2) : '--';
+    const leftAmountEl = $('budgetLeftAmount');
+    if (leftAmountEl) {
+      leftAmountEl.textContent = budget ? (remaining >= 0 ? '¥' + remaining.toFixed(2) : '-¥' + Math.abs(remaining).toFixed(2)) : '--';
+      leftAmountEl.classList.toggle('negative', !!(budget && remaining < 0));
+      leftAmountEl.classList.toggle('income', !!(budget && remaining >= 0));
+    }
+    if ($('monthIncome')) $('monthIncome').textContent = '¥' + income.toFixed(2);
+    if ($('monthExpense')) $('monthExpense').textContent = '¥' + expense.toFixed(2);
+    if ($('monthBalance')) {
+      $('monthBalance').textContent = (balance >= 0 ? '¥' : '-¥') + Math.abs(balance).toFixed(2);
+      $('monthBalance').classList.toggle('negative', balance < 0);
+      $('monthBalance').classList.toggle('income', balance >= 0);
+    }
     const entries = getMonthEntryList(month);
     $('entryCount').textContent = `${entries.length} 条记录 · ${month.replace('-', '年')}月`;
     if (!entries.length) {
@@ -3341,6 +3548,10 @@
     document.addEventListener('click', e => {
       const exportArea = e.target.closest && e.target.closest('#dataExportBtn, #exportOptions');
       if (!exportArea) closeExportOptions();
+      const restoreBackup = e.target.closest && e.target.closest('[data-restore-backup]');
+      if (restoreBackup) { restoreInAppBackup(restoreBackup.dataset.restoreBackup); return; }
+      const deleteBackup = e.target.closest && e.target.closest('[data-delete-backup]');
+      if (deleteBackup) { deleteInAppBackup(deleteBackup.dataset.deleteBackup); return; }
       const catDelBtn = e.target.closest && e.target.closest('.cat-del-btn');
       if (catDelBtn) {
         deleteCustomCategory(catDelBtn.dataset.group, catDelBtn.dataset.target);
@@ -3582,6 +3793,12 @@
       if (window.AndroidBridge && AndroidBridge.openDownloadsFolder) AndroidBridge.openDownloadsFolder();
       else toast(lang === 'zh' ? '请在本地 APK 中使用“打开文件夹”' : 'Please use “Open folder” in the local APK');
     });
+    if ($('manageBackupsBtn')) $('manageBackupsBtn').addEventListener('click', openBackupManager);
+    if ($('createBackupBtn')) $('createBackupBtn').addEventListener('click', createInAppBackup);
+    if ($('backupManagerClose')) $('backupManagerClose').addEventListener('click', () => $('backupManagerMask').classList.remove('show'));
+    if ($('backupManagerMask')) $('backupManagerMask').addEventListener('click', e => { if (e.target === $('backupManagerMask')) $('backupManagerMask').classList.remove('show'); });
+    if ($('dailySummaryClose')) $('dailySummaryClose').addEventListener('click', () => $('dailySummaryMask').classList.remove('show'));
+    if ($('dailySummaryMask')) $('dailySummaryMask').addEventListener('click', e => { if (e.target === $('dailySummaryMask')) $('dailySummaryMask').classList.remove('show'); });
     if ($('exportPreviewClose')) $('exportPreviewClose').addEventListener('click', () => $('exportPreviewMask').classList.remove('show'));
     if ($('exportPreviewMask')) $('exportPreviewMask').addEventListener('click', e => { if (e.target === $('exportPreviewMask')) $('exportPreviewMask').classList.remove('show'); });
     if ($('exportCopyBtn')) $('exportCopyBtn').addEventListener('click', copyCurrentExport);
@@ -3626,7 +3843,7 @@
     });
     $('notifyEnable').addEventListener('click', requestNotifyPermission);
     $('notifyTest').addEventListener('click', () => notifyBrowser(lang === 'zh' ? '🌸 花笺测试通知' : '🌸 Huajian test notification', lang === 'zh' ? '如果你看到这条，通知已经准备好了' : 'If you see this, notifications are ready'));
-    $('notifyDaily').addEventListener('click', () => notifyBrowser(lang === 'zh' ? '📋 每日摘要' : '📋 Daily Summary', buildDailySummary()));
+    $('notifyDaily').addEventListener('click', openDailySummary);
 
     // Memo search / filter
     $('memoSearch').addEventListener('input', renderMemos);

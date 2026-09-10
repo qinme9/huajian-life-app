@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -27,7 +28,9 @@ import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
     private static final String CHANNEL_ID = "huajian_reminders";
+    private static final int FILE_CHOOSER_REQUEST = 201;
     private WebView webView;
+    private ValueCallback<Uri[]> filePathCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +54,12 @@ public class MainActivity extends Activity {
 
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
         webView.setWebViewClient(new WebViewClient());
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> valueCallback, FileChooserParams fileChooserParams) {
+                return MainActivity.this.handleFileChooser(valueCallback, fileChooserParams);
+            }
+        });
         webView.loadUrl("file:///android_asset/index.html");
     }
 
@@ -202,9 +210,73 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public boolean createAppBackup(String name, String content) {
+            return BackupManager.create(MainActivity.this, name, content);
+        }
+
+        @JavascriptInterface
+        public String listAppBackups() {
+            return BackupManager.list(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public String readAppBackup(String name) {
+            return BackupManager.read(MainActivity.this, name);
+        }
+
+        @JavascriptInterface
+        public boolean deleteAppBackup(String name) {
+            return BackupManager.delete(MainActivity.this, name);
+        }
+
+        @JavascriptInterface
         public void requestNotification() {
             runOnUiThread(MainActivity.this::requestRuntimePermissions);
         }
+    }
+
+    private boolean handleFileChooser(ValueCallback<Uri[]> valueCallback, WebChromeClient.FileChooserParams params) {
+        if (filePathCallback != null) {
+            filePathCallback.onReceiveValue(null);
+        }
+        filePathCallback = valueCallback;
+        Intent intent;
+        try {
+            intent = params.createIntent();
+        } catch (Exception e) {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+        }
+        try {
+            startActivityForResult(intent, FILE_CHOOSER_REQUEST);
+            return true;
+        } catch (Exception e) {
+            filePathCallback = null;
+            Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != FILE_CHOOSER_REQUEST) return;
+        if (filePathCallback == null) return;
+        Uri[] results = null;
+        if (resultCode == RESULT_OK && data != null) {
+            if (data.getClipData() != null) {
+                int count = data.getClipData().getItemCount();
+                results = new Uri[count];
+                for (int i = 0; i < count; i++) {
+                    results[i] = data.getClipData().getItemAt(i).getUri();
+                }
+            } else if (data.getData() != null) {
+                results = new Uri[]{data.getData()};
+            }
+        }
+        filePathCallback.onReceiveValue(results);
+        filePathCallback = null;
     }
 
     private String guessMime(String filename) {
