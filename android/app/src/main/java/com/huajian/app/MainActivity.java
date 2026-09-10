@@ -182,6 +182,26 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void openDownloadsFolder() {
+            runOnUiThread(() -> {
+                try {
+                    Intent intent = new Intent("android.intent.action.VIEW_DOWNLOADS");
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    return;
+                } catch (Exception ignored) {}
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.parse("content://com.android.externalstorage.documents/root/primary"), "resource/folder");
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "请到系统“文件管理 / 下载”中查看导出文件", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void requestNotification() {
             runOnUiThread(MainActivity.this::requestRuntimePermissions);
         }

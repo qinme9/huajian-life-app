@@ -377,6 +377,8 @@
   .tool-card { background:var(--paper); border:1px solid #eee3d2; border-radius:18px; padding:14px 16px; box-shadow:0 4px 10px rgba(0,0,0,.03); }
   .tool-card h3 { color:var(--green-dark); font-size:16px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
   .tool-card .sub { font-size:12px; color:var(--muted); margin-bottom:8px; }
+  .export-options { display:none; flex-wrap:wrap; gap:8px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); }
+  .export-options.show { display:flex; }
   .btn-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
   .stat-bars { display:flex; flex-direction:column; gap:10px; }
   .stat-bar-row .sb-label { font-size:12px; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:3px; }
@@ -890,11 +892,16 @@
     <div class="tools-grid">
       <div class="tool-card">
         <h3><span data-i18n="tools.data">📦 数据备份</span></h3>
-        <div class="sub" data-i18n="tools.dataDesc">导出为 JSON 文件，或从备份文件恢复</div>
+        <div class="sub" data-i18n="tools.dataDesc">导出、导入备份，或打开系统下载文件夹</div>
         <div class="btn-row">
-          <button class="btn btn-ghost btn-sm" id="exportBtn" data-i18n="tools.export">导出 JSON</button>
-          <button class="btn btn-light btn-sm" id="importBtn" data-i18n="tools.import">导入 JSON</button>
+          <button class="btn btn-ghost btn-sm" id="dataExportBtn" data-i18n="tools.export">导出</button>
+          <button class="btn btn-light btn-sm" id="dataImportBtn" data-i18n="tools.import">导入</button>
+          <button class="btn btn-light btn-sm" id="openDownloadsBtn" data-i18n="tools.openFolder">打开文件夹</button>
           <input type="file" id="importFile" class="hidden-file" accept=".json,application/json">
+        </div>
+        <div class="export-options" id="exportOptions">
+          <button class="btn btn-ghost btn-sm" id="exportJsonBtn" data-i18n="tools.exportJson">JSON 备份</button>
+          <button class="btn btn-ghost btn-sm" id="exportIcsBtn" data-i18n="tools.exportIcs">日历提醒 (.ics)</button>
         </div>
       </div>
       <div class="tool-card">
@@ -957,14 +964,6 @@
           <button class="btn btn-ghost btn-sm" id="notifyEnable" data-i18n="tools.enableNotify">开启通知</button>
           <button class="btn btn-light btn-sm" id="notifyTest" data-i18n="tools.testNotify">测试通知</button>
           <button class="btn btn-light btn-sm" id="notifyDaily" data-i18n="tools.dailySummary">每日摘要</button>
-        </div>
-      </div>
-      <div class="tool-card">
-        <h3 data-i18n="tools.exportFiles">📂 导出文件</h3>
-        <div class="sub" data-i18n="tools.exportFilesDesc">手机浏览器不能直接打开系统文件夹；这里可以重新打开/下载对应文件。</div>
-        <div class="btn-row">
-          <button class="btn btn-ghost btn-sm" id="openCalendarExportBtn" data-i18n="tools.openCalendar">查看 / 导出日历提醒 (.ics)</button>
-          <button class="btn btn-light btn-sm" id="openJsonExportBtn" data-i18n="tools.openJson">查看 / 导出 JSON 备份</button>
         </div>
       </div>
     </div>
@@ -1230,7 +1229,6 @@
       <button class="btn btn-ghost btn-sm" id="reminderEnable" data-i18n="reminder.enable">开启通知</button>
       <button class="btn btn-light btn-sm" id="reminderTest" data-i18n="reminder.test">测试通知</button>
       <button class="btn btn-light btn-sm" id="reminderDaily" data-i18n="reminder.daily">每日摘要</button>
-      <button class="btn btn-ghost btn-sm" id="reminderExportIcs" data-i18n="reminder.exportIcs">导出日历提醒</button>
       <button class="btn btn-light btn-sm" id="reminderClose" data-i18n="reminder.close">关闭</button>
     </div>
   </div>
@@ -1642,7 +1640,7 @@
       'ov.todo':'📋 待办完成度', 'ov.habit':'🌿 习惯打卡', 'ov.date':'💝 最近纪念日', 'ov.budget':'💰 本月预算', 'ov.first':'✨ 人生最新一次',
       'module.todo':'📝 待办事项', 'module.habit':'🌿 习惯打卡', 'module.dates':'💝 重要日期', 'module.ledger':'💰 生活费账本', 'module.first':'✨ 人生第一次', 'module.milestones':'📜 大事记', 'milestones.tool':'把人生里重要的事，按时间收进一本大事记', 'module.memos':'📝 备忘录', 'memos.tool':'随手记下想法、清单和不想忘记的小事',
       'tools.title':'🧰 效率工具', 'tools.subtitle':'备份、统计、专注与提醒都在这里',
-      'tools.data':'📦 数据备份', 'tools.dataDesc':'导出为 JSON 文件，或从备份文件恢复', 'tools.export':'导出 JSON', 'tools.import':'导入 JSON',
+      'tools.data':'📦 数据备份', 'tools.dataDesc':'导出、导入备份，或打开系统下载文件夹', 'tools.export':'导出', 'tools.import':'导入', 'tools.openFolder':'打开文件夹', 'tools.exportJson':'JSON 备份', 'tools.exportIcs':'日历提醒 (.ics)',
       'tools.stats':'📊 数据小统计', 'stats.todo':'待办完成', 'stats.habit':'今日习惯', 'stats.budget':'本月预算',
       'tools.focus':'🍅 专注番茄钟', 'tools.ready':'准备好开始一段专注了吗？', 'tools.start':'开始', 'tools.pause':'暂停', 'tools.reset':'重置',
       'tools.remind':'🔔 提醒与每日摘要', 'tools.notifyDesc':'开启浏览器通知后，页面打开时会在后台检查提醒',
@@ -1663,7 +1661,7 @@
       'ov.todo':'📋 Todo Progress', 'ov.habit':'🌿 Habit Check-ins', 'ov.date':'💝 Next Special Day', 'ov.budget':'💰 Monthly Budget', 'ov.first':'✨ Latest First Time',
       'module.todo':'📝 Todos', 'module.habit':'🌿 Habit Tracking', 'module.dates':'💝 Important Dates', 'module.ledger':'💰 Expense Ledger', 'module.first':'✨ First-Time Experiences', 'module.milestones':'📜 Chronicle', 'milestones.tool':'Keep the important moments of your life in a timeline', 'module.memos':'📝 Memos', 'memos.tool':'Jot down ideas, lists, and little things you do not want to forget',
       'tools.title':'🧰 Utility Tools', 'tools.subtitle':'Backup, stats, focus timer, and reminders',
-      'tools.data':'📦 Data Backup', 'tools.dataDesc':'Export data to JSON, or restore from a backup file', 'tools.export':'Export JSON', 'tools.import':'Import JSON',
+      'tools.data':'📦 Data Backup', 'tools.dataDesc':'Export, import backups, or open the Downloads folder', 'tools.export':'Export', 'tools.import':'Import', 'tools.openFolder':'Open folder', 'tools.exportJson':'JSON backup', 'tools.exportIcs':'Calendar reminders (.ics)',
       'tools.stats':'📊 Quick Statistics', 'stats.todo':'Todos done', 'stats.habit':'Habits today', 'stats.budget':'Budget used',
       'tools.focus':'🍅 Focus Timer', 'tools.ready':'Ready to start a focus session?', 'tools.start':'Start', 'tools.pause':'Pause', 'tools.reset':'Reset',
       'tools.remind':'🔔 Reminders & Daily Summary', 'tools.notifyDesc':'After enabling notifications, reminders are checked while the page is open',
@@ -3457,15 +3455,19 @@
         toast(lang === 'zh' ? '已切换为中文' : 'Switched to English');
       });
     }
-    if ($('exportBtn')) $('exportBtn').addEventListener('click', () => openExportPreview('json'));
-    if ($('openJsonExportBtn')) $('openJsonExportBtn').addEventListener('click', () => openExportPreview('json'));
-    if ($('openCalendarExportBtn')) $('openCalendarExportBtn').addEventListener('click', () => openExportPreview('ics'));
+    if ($('dataExportBtn')) $('dataExportBtn').addEventListener('click', () => $('exportOptions').classList.toggle('show'));
+    if ($('exportJsonBtn')) $('exportJsonBtn').addEventListener('click', () => { $('exportOptions').classList.remove('show'); openExportPreview('json'); });
+    if ($('exportIcsBtn')) $('exportIcsBtn').addEventListener('click', () => { $('exportOptions').classList.remove('show'); openExportPreview('ics'); });
+    if ($('openDownloadsBtn')) $('openDownloadsBtn').addEventListener('click', () => {
+      if (window.AndroidBridge && AndroidBridge.openDownloadsFolder) AndroidBridge.openDownloadsFolder();
+      else toast(lang === 'zh' ? '请在本地 APK 中使用“打开文件夹”' : 'Please use “Open folder” in the local APK');
+    });
     if ($('exportPreviewClose')) $('exportPreviewClose').addEventListener('click', () => $('exportPreviewMask').classList.remove('show'));
     if ($('exportPreviewMask')) $('exportPreviewMask').addEventListener('click', e => { if (e.target === $('exportPreviewMask')) $('exportPreviewMask').classList.remove('show'); });
     if ($('exportCopyBtn')) $('exportCopyBtn').addEventListener('click', copyCurrentExport);
     if ($('exportShareBtn')) $('exportShareBtn').addEventListener('click', shareCurrentExport);
     if ($('exportDownloadBtn')) $('exportDownloadBtn').addEventListener('click', downloadCurrentExport);
-    $('importBtn').addEventListener('click', () => $('importFile').click());
+    if ($('dataImportBtn')) $('dataImportBtn').addEventListener('click', () => $('importFile').click());
     $('importFile').addEventListener('change', e => {
       if (e.target.files && e.target.files[0]) importData(e.target.files[0]);
       e.target.value = '';
