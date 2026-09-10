@@ -378,7 +378,9 @@
   .tool-card h3 { color:var(--green-dark); font-size:16px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
   .tool-card .sub { font-size:12px; color:var(--muted); margin-bottom:8px; }
   .export-options { display:none; flex-wrap:wrap; gap:8px; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); }
-  .export-options.show { display:flex; }
+  .export-options.show { display:flex; animation: popupIn .2s ease both; }
+  .export-options-toggle::after { content:'  ▾'; font-size:10px; opacity:.65; }
+  .export-options-toggle.active::after { content:'  ▴'; }
   .btn-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
   .stat-bars { display:flex; flex-direction:column; gap:10px; }
   .stat-bar-row .sb-label { font-size:12px; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:3px; }
@@ -802,6 +804,99 @@
   }
   @media (max-width:640px){ #exportPreviewText { min-height:36vh; } }
 
+  /* ---------- UI beautify layer ---------- */
+  body {
+    background:
+      radial-gradient(circle at 8% 6%, rgba(245,123,106,.10) 0, transparent 24%),
+      radial-gradient(circle at 96% 12%, rgba(47,88,71,.12) 0, transparent 30%),
+      radial-gradient(circle at 48% 104%, rgba(217,180,91,.10) 0, transparent 32%),
+      linear-gradient(180deg, #fdf8ee 0%, var(--cream) 42%, #f8f1e4 100%);
+  }
+  header.hero { position: relative; }
+  header.hero::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -18px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(47,88,71,.16), transparent);
+  }
+  .brand-icon {
+    background: linear-gradient(145deg, #3a6b56, var(--ink-green));
+    box-shadow: 0 14px 26px rgba(47,88,71,.22), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .today-pill {
+    background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.62));
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 24px rgba(63,80,67,.08), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  .module {
+    background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,253,247,.86));
+    border-color: rgba(255,255,255,.72);
+    box-shadow: 0 22px 52px rgba(63,80,67,.10), 0 3px 8px rgba(63,80,67,.05), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+  .module-title h2 { text-shadow: 0 1px 0 rgba(255,255,255,.75); }
+  .mini-card, .tool-card, .habit-card, .todo-item, .date-item, .entry-row, .first-card, .milestone-card, .memo-card {
+    background-image: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,0));
+    border-color: rgba(238,227,210,.85);
+    box-shadow: 0 10px 26px rgba(63,80,67,.07), 0 2px 5px rgba(63,80,67,.04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .mini-card:hover, .tool-card:hover, .habit-card:hover, .todo-item:hover, .date-item:hover,
+  .entry-row:hover, .first-card:hover, .milestone-card:hover, .memo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px rgba(63,80,67,.11), 0 3px 8px rgba(63,80,67,.05);
+    border-color: rgba(47,88,71,.18);
+  }
+  .btn {
+    border-radius: 13px;
+    box-shadow: 0 8px 18px rgba(47,88,71,.16), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .btn:hover { box-shadow: 0 11px 24px rgba(47,88,71,.22), inset 0 1px 0 rgba(255,255,255,.18); }
+  .btn:active { transform: translateY(0) scale(.985); }
+  .btn-light { box-shadow: inset 0 1px 0 rgba(255,255,255,.65); }
+  .btn-ghost { box-shadow: inset 0 0 0 1.5px rgba(47,88,71,.22); }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--ink-green);
+    box-shadow: 0 0 0 3px rgba(47,88,71,.10);
+  }
+  .sidebar {
+    background: linear-gradient(180deg, rgba(255,253,247,.98), rgba(255,248,239,.94));
+    border-color: rgba(255,255,255,.78);
+    box-shadow: 0 24px 56px rgba(63,80,67,.16), inset 0 1px 0 rgba(255,255,255,.85);
+  }
+  .side-nav a:hover, .side-nav a.active { box-shadow: inset 0 0 0 1px rgba(47,88,71,.06); }
+  .settings-card, .modal, .reminder-card { box-shadow: 0 30px 70px rgba(40,52,45,.26), inset 0 1px 0 rgba(255,255,255,.65); }
+  .popup-close { transition: transform .15s ease, background .15s ease; }
+  .popup-close:hover { transform: rotate(90deg); }
+  .bar > span { box-shadow: 0 0 0 1px rgba(255,255,255,.28) inset; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: rgba(47,88,71,.18); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(47,88,71,.30); background-clip: content-box; }
+  /* Dark theme polish */
+  body.theme-dark .module { background: linear-gradient(180deg, rgba(42,55,47,.96), rgba(36,47,41,.92)); border-color: rgba(255,255,255,.06); }
+  body.theme-dark .mini-card, body.theme-dark .tool-card, body.theme-dark .habit-card, body.theme-dark .todo-item,
+  body.theme-dark .date-item, body.theme-dark .entry-row, body.theme-dark .first-card,
+  body.theme-dark .milestone-card, body.theme-dark .memo-card { background-image: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0)); }
+  body.theme-dark .sidebar { background: linear-gradient(180deg, rgba(38,48,42,.98), rgba(32,41,36,.96)); border-color: rgba(255,255,255,.08); }
+  body.theme-dark .sidebar-controls { background:#223029; }
+  body.theme-dark .side-nav a { color:var(--text); }
+  body.theme-dark .side-nav a:hover, body.theme-dark .side-nav a.active { background:var(--green-light); color:var(--green-dark); }
+  body.theme-dark .sidebar-quick-btn { background:rgba(255,255,255,.05); color:var(--text); }
+  body.theme-dark .sidebar-foot { border-color:#3d4e45; }
+  body.theme-dark .modal, body.theme-dark .settings-card, body.theme-dark .reminder-card { background:#28352e; color:var(--text); }
+  body.theme-dark .popup-close { background:#34433b; color:var(--text); }
+  body.theme-dark input:focus, body.theme-dark select:focus, body.theme-dark textarea:focus { box-shadow: 0 0 0 3px rgba(165,212,185,.14); }
+  /* Long titles wrap instead of being squeezed */
+  .module-title, .tool-card h3, .modal h3, .settings-card h3, .reminder-card h3,
+  .brand h1, .sidebar-title {
+    flex-wrap: wrap;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+  .module-title h2, .module-title .tool, .tool-card h3 > span,
+  .modal h3, .settings-card h3, .reminder-card h3, .brand h1, .sidebar-title {
+    min-width: 0;
+  }
+  .module-title h2 { flex: 1 1 auto; }
+  .module-title .tool { flex: 0 1 auto; }
 </style>
 </head>
 <body data-app-page="home">
@@ -894,7 +989,7 @@
         <h3><span data-i18n="tools.data">📦 数据备份</span></h3>
         <div class="sub" data-i18n="tools.dataDesc">导出、导入备份，或打开系统下载文件夹</div>
         <div class="btn-row">
-          <button class="btn btn-ghost btn-sm" id="dataExportBtn" data-i18n="tools.export">导出</button>
+          <button class="btn btn-ghost btn-sm export-options-toggle" id="dataExportBtn" data-i18n="tools.export" aria-expanded="false">导出</button>
           <button class="btn btn-light btn-sm" id="dataImportBtn" data-i18n="tools.import">导入</button>
           <button class="btn btn-light btn-sm" id="openDownloadsBtn" data-i18n="tools.openFolder">打开文件夹</button>
           <input type="file" id="importFile" class="hidden-file" accept=".json,application/json">
@@ -2161,24 +2256,22 @@
     }, 15000);
     toast(lang === 'zh' ? '已触发下载。如果没有在 Download 里看到，请用预览窗口里的「手动下载」或浏览器菜单保存' : 'Download triggered. If you cannot find it, use the manual download link in the preview or your browser menu.');
   }
-  function downloadDataDirect() {
-    const payload = JSON.stringify({ app: 'huajian-life-dashboard', exportedAt: new Date().toISOString(), state }, null, 2);
-    downloadBlob('huajian-backup-' + todayStr() + '.json', new Blob([payload], { type: 'application/json' }));
-  }
-  function downloadReminderICSDirect() {
-    const content = buildReminderICS();
-    if (content.indexOf('BEGIN:VEVENT') < 0) {
-      toast(lang === 'zh' ? '当前没有可导出的提醒' : 'There are no reminders to export');
-      return;
-    }
-    downloadBlob('huajian-reminders-' + todayStr() + '.ics', new Blob([content], { type: 'text/calendar;charset=utf-8' }));
-  }
-
   let currentExportData = null;
   let currentExportBlobUrl = null;
+  function buildBackupPayload() {
+    return JSON.stringify({
+      app: 'huajian-life-dashboard',
+      formatVersion: 2,
+      exportedAt: new Date().toISOString(),
+      state,
+      settings: appSettings,
+      sidebar: sidebarPref,
+      sidebarOrder: typeof loadSidebarOrder === 'function' ? loadSidebarOrder() : []
+    }, null, 2);
+  }
   function prepareExport(type) {
     if (type === 'json') {
-      const payload = JSON.stringify({ app: 'huajian-life-dashboard', exportedAt: new Date().toISOString(), state }, null, 2);
+      const payload = buildBackupPayload();
       return { filename: 'huajian-backup-' + todayStr() + '.json', mime: 'application/json', content: payload, title: lang === 'zh' ? '花笺数据备份' : 'Huajian data backup' };
     }
     const content = buildReminderICS();
@@ -2234,12 +2327,6 @@
     downloadBlob(currentExportData.filename, blob);
   }
 
-  function exportData() {
-    const payload = JSON.stringify({ app: 'huajian-life-dashboard', exportedAt: new Date().toISOString(), state }, null, 2);
-    const blob = new Blob([payload], { type: 'application/json' });
-    shareOrDownloadBlob('huajian-backup-' + todayStr() + '.json', blob, 'application/json', lang === 'zh' ? '花笺数据备份' : 'Huajian data backup');
-  }
-
   function importData(file) {
     const reader = new FileReader();
     reader.onload = e => {
@@ -2249,8 +2336,31 @@
         if (!raw || !Array.isArray(raw.todos)) throw new Error('invalid');
         state = Object.assign(defaultState(), raw);
         state.dates.forEach(normalizeDateRepeat);
+
+        if (parsed && parsed.settings && typeof parsed.settings === 'object') {
+          appSettings = Object.assign(appSettings, parsed.settings);
+          saveSettings();
+          loadSettings();
+          applySettings();
+          updateSettingsUI();
+        }
+        if (parsed && parsed.sidebar && typeof parsed.sidebar === 'object') {
+          sidebarPref = Object.assign(sidebarPref, parsed.sidebar);
+          saveSidebarPref();
+          loadSidebarPref();
+          applySidebar();
+        }
+        if (parsed && Array.isArray(parsed.sidebarOrder)) {
+          const order = parsed.sidebarOrder.filter(k => SIDEBAR_PAGE_KEYS.includes(k));
+          if (order.length) {
+            saveSidebarOrder(order);
+            applySidebarOrder();
+          }
+        }
+        populateCustomCategories();
         save();
         renderAll();
+        translateStatic();
         toast(lang === 'zh' ? '数据导入成功' : 'Data imported successfully');
       } catch (err) {
         toast(lang === 'zh' ? '导入失败：文件格式不正确' : 'Import failed: invalid file');
@@ -2451,10 +2561,11 @@
       const d = ups[0];
       parts.push(d.name + (d.days === 0 ? (lang === 'zh' ? ' 就是今天' : ' today') : (lang === 'zh' ? ' ' + d.days + ' 天后' : ' in ' + d.days + ' day(s)')));
     }
+    const count = dueToday.length + habitsLeft.length + (ups.length && ups[0].days <= 3 ? 1 : 0);
     return {
       title: lang === 'zh' ? '📋 花笺今日提醒' : '📋 Huajian daily reminder',
       body: parts.length ? parts.join(' · ') : (lang === 'zh' ? '今天没有紧急提醒，安心生活吧 ✨' : 'No urgent reminders today ✨'),
-      count: typeof reminderCount === 'function' ? reminderCount() : 0
+      count
     };
   }
   function syncReminderSchedule() {
@@ -2465,6 +2576,11 @@
         return;
       }
       const summary = reminderScheduleSummary();
+      // Do not fire a daily notification when there is nothing to remind about.
+      if (!summary.count) {
+        if (AndroidBridge.cancelDailyReminder) AndroidBridge.cancelDailyReminder();
+        return;
+      }
       AndroidBridge.scheduleDailyReminder(appSettings.reminderTime || '09:00', !!appSettings.reminderAlarm, summary.title, summary.body, summary.count);
     } catch(e) {}
   }
@@ -2518,6 +2634,8 @@
   }
 
   function checkReminders() {
+    // Native AlarmManager already handles daily reminders in the APK.
+    if (window.AndroidBridge && AndroidBridge.scheduleDailyReminder) return;
     if (!canNotify()) { updateNotifyUI(); return; }
     try {
       const lastDate = localStorage.getItem('huajian-remind-date') || '';
@@ -2598,16 +2716,6 @@
     lines.push('END:VCALENDAR');
     return lines.join('\r\n');
   }
-  function exportReminderICS() {
-    const content = buildReminderICS();
-    if (content.indexOf('BEGIN:VEVENT') < 0) {
-      toast(lang === 'zh' ? '当前没有可导出的提醒' : 'There are no reminders to export');
-      return;
-    }
-    const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
-    shareOrDownloadBlob('huajian-reminders-' + todayStr() + '.ics', blob, 'text/calendar', lang === 'zh' ? '花笺日历提醒' : 'Huajian calendar reminders');
-  }
-
   function openReminderCenter() {
     renderReminderCenter();
     const mask = $('reminderMask');
@@ -2623,7 +2731,6 @@
       if ($('reminderEnable')) $('reminderEnable').addEventListener('click', requestNotifyPermission);
       if ($('reminderTest')) $('reminderTest').addEventListener('click', () => notifyBrowser(lang === 'zh' ? '🌸 花笺测试通知' : '🌸 Huajian test notification', lang === 'zh' ? '如果你看到这条，通知已经准备好了' : 'If you see this, notifications are ready'));
       if ($('reminderDaily')) $('reminderDaily').addEventListener('click', () => notifyBrowser(lang === 'zh' ? '📋 每日摘要' : '📋 Daily Summary', buildDailySummary()));
-      if ($('reminderExportIcs')) $('reminderExportIcs').addEventListener('click', exportReminderICS);
     }
   }
 
@@ -3232,6 +3339,8 @@
     });
     // Document delegation for actions
     document.addEventListener('click', e => {
+      const exportArea = e.target.closest && e.target.closest('#dataExportBtn, #exportOptions');
+      if (!exportArea) closeExportOptions();
       const catDelBtn = e.target.closest && e.target.closest('.cat-del-btn');
       if (catDelBtn) {
         deleteCustomCategory(catDelBtn.dataset.group, catDelBtn.dataset.target);
@@ -3455,9 +3564,20 @@
         toast(lang === 'zh' ? '已切换为中文' : 'Switched to English');
       });
     }
-    if ($('dataExportBtn')) $('dataExportBtn').addEventListener('click', () => $('exportOptions').classList.toggle('show'));
-    if ($('exportJsonBtn')) $('exportJsonBtn').addEventListener('click', () => { $('exportOptions').classList.remove('show'); openExportPreview('json'); });
-    if ($('exportIcsBtn')) $('exportIcsBtn').addEventListener('click', () => { $('exportOptions').classList.remove('show'); openExportPreview('ics'); });
+    function closeExportOptions() {
+      const options = $('exportOptions');
+      if (options) options.classList.remove('show');
+      const btn = $('dataExportBtn');
+      if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-expanded', 'false'); }
+    }
+    if ($('dataExportBtn')) $('dataExportBtn').addEventListener('click', () => {
+      const options = $('exportOptions');
+      const open = options ? options.classList.toggle('show') : false;
+      $('dataExportBtn').classList.toggle('active', open);
+      $('dataExportBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    if ($('exportJsonBtn')) $('exportJsonBtn').addEventListener('click', () => { closeExportOptions(); openExportPreview('json'); });
+    if ($('exportIcsBtn')) $('exportIcsBtn').addEventListener('click', () => { closeExportOptions(); openExportPreview('ics'); });
     if ($('openDownloadsBtn')) $('openDownloadsBtn').addEventListener('click', () => {
       if (window.AndroidBridge && AndroidBridge.openDownloadsFolder) AndroidBridge.openDownloadsFolder();
       else toast(lang === 'zh' ? '请在本地 APK 中使用“打开文件夹”' : 'Please use “Open folder” in the local APK');
