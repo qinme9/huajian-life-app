@@ -209,6 +209,10 @@
   .date-add-head .hint { font-size:11px; color:var(--muted); background:var(--coral-light); color:#b35646; padding:2px 8px; border-radius:99px; }
   .date-add-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
   .date-add-grid .full { grid-column:1 / -1; }
+  .lunar-date-grid { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:8px; align-items:center; }
+  .lunar-date-grid input, .lunar-date-grid select { width:100%; }
+  .lunar-leap { display:flex; align-items:center; gap:4px; font-size:13px; color:var(--muted); white-space:nowrap; }
+  @media (max-width: 520px) { .lunar-date-grid { grid-template-columns:1fr 1fr; } }
   .date-custom {
     grid-column:1 / -1; background:#fffdf7; border:1px dashed #d8cbb4; border-radius:14px;
     padding:10px 12px; display:none; align-items:center; gap:8px; flex-wrap:wrap;
@@ -966,7 +970,17 @@
           <div class="date-add-grid">
             <div class="full"><label class="field-label">名称 *</label><input id="dateName" placeholder="例如：妈妈生日、恋爱纪念日、考试周"></div>
             <div><label class="field-label">类型</label><span class="cat-select-wrap"><select id="dateType"><option>生日</option><option>纪念日</option><option>节日</option><option>其他</option></select><button type="button" class="cat-add-btn" data-group="date" data-target="dateType" title="添加自定义分类">＋</button></span></div>
-            <div><label class="field-label">起始日期 *</label><input type="date" id="dateValue"></div>
+            <div><label class="field-label" data-i18n="dates.calendar">日历类型</label><select id="dateCalendar"><option value="solar" data-i18n="dates.solar">阳历</option><option value="lunar" data-i18n="dates.lunar">农历</option></select></div>
+            <div id="dateSolarField"><label class="field-label" data-i18n="dates.date">起始日期 *</label><input type="date" id="dateValue"></div>
+            <div id="dateLunarField" class="full" style="display:none;">
+              <label class="field-label" data-i18n="dates.lunarDate">农历日期 *</label>
+              <div class="lunar-date-grid">
+                <input type="number" id="dateLunarYear" min="1900" max="2099" placeholder="年">
+                <select id="dateLunarMonth"></select>
+                <select id="dateLunarDay"></select>
+                <label class="lunar-leap"><input type="checkbox" id="dateLunarLeap"> <span data-i18n="dates.leapMonth">闰月</span></label>
+              </div>
+            </div>
             <div class="full"><label class="field-label">重复规则</label><select id="dateRepeat">
               <option value="year" selected>每年重复（默认）</option>
               <option value="none">不重复（只提醒一次）</option>
@@ -1688,6 +1702,11 @@
     "请填写日期和有效金额": "Please fill in a valid date and amount",
     "请输入有效的月份和预算金额": "Please enter a valid month and budget amount",
     "自定义音效已保存": "Custom sound saved",
+    "日历类型": "Calendar",
+    "阳历": "Solar calendar",
+    "农历": "Lunar calendar",
+    "农历日期 *": "Lunar date *",
+    "闰月": "Leap month",
     "未设置": "Not set",
     "提醒中心": "Reminder Center",
     "编辑": "Edit",
@@ -1889,6 +1908,7 @@
     function t(key) { return (I18N[lang] && I18N[lang][key]) || key; }
   function applyLang() {
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    if (typeof populateLunarDateOptions === 'function') populateLunarDateOptions();
     translateStatic();
   }
   function resolveTheme() {
@@ -1918,12 +1938,20 @@
   let dragStartX = 0;
   let dragStartW = 0;
 
+  function sidebarWidthRange() {
+    const vw = Math.max(320, window.innerWidth || document.documentElement.clientWidth || 1024);
+    return { min: Math.round(vw / 3), max: Math.round(vw * 2 / 3) };
+  }
+  function clampSidebarWidth(width) {
+    const range = sidebarWidthRange();
+    return Math.min(range.max, Math.max(range.min, Math.round(Number(width) || range.min)));
+  }
   function loadSidebarPref() {
     try {
       const raw = JSON.parse(localStorage.getItem(SIDEBAR_LS) || '{}');
       sidebarPref = Object.assign({ side: 'left', width: 270, collapsed: false }, raw);
       if (!['left','right'].includes(sidebarPref.side)) sidebarPref.side = 'left';
-      sidebarPref.width = Math.min(400, Math.max(190, Number(sidebarPref.width) || 270));
+      sidebarPref.width = clampSidebarWidth(sidebarPref.width);
     } catch(e) {}
   }
   function saveSidebarPref() {
@@ -1933,6 +1961,11 @@
     const mobile = window.innerWidth <= 900;
     document.body.classList.remove('side-left','side-right','sidebar-collapsed','sidebar-mobile-open');
     document.body.classList.add('side-' + sidebarPref.side);
+    const clampedWidth = clampSidebarWidth(sidebarPref.width);
+    if (clampedWidth !== sidebarPref.width) {
+      sidebarPref.width = clampedWidth;
+      saveSidebarPref();
+    }
     document.body.style.setProperty('--sidebar-w', sidebarPref.width + 'px');
 
     const closed = sidebarPref.collapsed && !mobile;
@@ -1999,7 +2032,7 @@
     handle.addEventListener('pointermove', e => {
       if (!sidebarDragging) return;
       const delta = sidebarPref.side === 'left' ? e.clientX - dragStartX : dragStartX - e.clientX;
-      sidebarPref.width = Math.min(400, Math.max(190, Math.round(dragStartW + delta)));
+      sidebarPref.width = clampSidebarWidth(dragStartW + delta);
       document.body.style.setProperty('--sidebar-w', sidebarPref.width + 'px');
       saveSidebarPref();
     });
@@ -2014,9 +2047,119 @@
   }
 
   /* ---------- Date utilities ---------- */
+  /* ---------- Chinese lunar calendar (1900-2099) ---------- */
+  const LUNAR_INFOS = [
+    0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2,
+    0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977,
+    0x04970, 0x0a4b0, 0x0b4b5, 0x06a50, 0x06d40, 0x1ab54, 0x02b60, 0x09570, 0x052f2, 0x04970,
+    0x06566, 0x0d4a0, 0x0ea50, 0x06e95, 0x05ad0, 0x02b60, 0x186e3, 0x092e0, 0x1c8d7, 0x0c950,
+    0x0d4a0, 0x1d8a6, 0x0b550, 0x056a0, 0x1a5b4, 0x025d0, 0x092d0, 0x0d2b2, 0x0a950, 0x0b557,
+    0x06ca0, 0x0b550, 0x15355, 0x04da0, 0x0a5d0, 0x14573, 0x052b0, 0x0a9a8, 0x0e950, 0x06aa0,
+    0x0aea6, 0x0ab50, 0x04b60, 0x0aae4, 0x0a570, 0x05260, 0x0f263, 0x0d950, 0x05b57, 0x056a0,
+    0x096d0, 0x04dd5, 0x04ad0, 0x0a4d0, 0x0d4d4, 0x0d250, 0x0d558, 0x0b540, 0x0b5a0, 0x195a6,
+    0x095b0, 0x049b0, 0x0a974, 0x0a4b0, 0x0b27a, 0x06a50, 0x06d40, 0x0af46, 0x0ab60, 0x09570,
+    0x04af5, 0x04970, 0x064b0, 0x074a3, 0x0ea50, 0x06b58, 0x05ac0, 0x0ab60, 0x096d5, 0x092e0,
+    0x0c960, 0x0d954, 0x0d4a0, 0x0da50, 0x07552, 0x056a0, 0x0abb7, 0x025d0, 0x092d0, 0x0cab5,
+    0x0a950, 0x0b4a0, 0x0baa4, 0x0ad50, 0x055d9, 0x04ba0, 0x0a5b0, 0x15176, 0x052b0, 0x0a930,
+    0x07954, 0x06aa0, 0x0ad50, 0x05b52, 0x04b60, 0x0a6e6, 0x0a4e0, 0x0d260, 0x0ea65, 0x0d530,
+    0x05aa0, 0x076a3, 0x096d0, 0x04afb, 0x04ad0, 0x0a4d0, 0x1d0b6, 0x0d250, 0x0d520, 0x0dd45,
+    0x0b5a0, 0x056d0, 0x055b2, 0x049b0, 0x0a577, 0x0a4b0, 0x0aa50, 0x1b255, 0x06d20, 0x0ada0,
+    0x14b63, 0x09370, 0x049f8, 0x04970, 0x064b0, 0x168a6, 0x0ea50, 0x06aa0, 0x1a6c4, 0x0aae0,
+    0x092e0, 0x0d2e3, 0x0c960, 0x0d557, 0x0d4a0, 0x0da50, 0x05d55, 0x056a0, 0x0a6d0, 0x055d4,
+    0x052d0, 0x0a9b8, 0x0a950, 0x0b4a0, 0x0b6a6, 0x0ad50, 0x055a0, 0x0aba4, 0x0a5b0, 0x052b0,
+    0x0b273, 0x06930, 0x07337, 0x06aa0, 0x0ad50, 0x14b55, 0x04b60, 0x0a570, 0x054e4, 0x0d160,
+    0x0e968, 0x0d520, 0x0daa0, 0x16aa6, 0x056d0, 0x04ae0, 0x0a9d4, 0x0a2d0, 0x0d150, 0x0f252
+  ];
+  function lunarLeapMonth(y) {
+    y = Number(y);
+    if (y < 1900 || y > 2099) return 0;
+    return LUNAR_INFOS[y - 1900] % 16;
+  }
+  function lunarMonthDays(y, m) {
+    y = Number(y); m = Number(m);
+    if (y < 1900 || y > 2099 || m < 1 || m > 12) return 0;
+    const info = LUNAR_INFOS[y - 1900];
+    return ((info >> (16 - m)) & 1) ? 30 : 29;
+  }
+  function lunarLeapDays(y) {
+    y = Number(y);
+    const leap = lunarLeapMonth(y);
+    if (!leap) return 0;
+    const info = LUNAR_INFOS[y - 1900];
+    return ((info >> 16) & 1) ? 30 : 29;
+  }
+  function lunarYearDays(y) {
+    y = Number(y);
+    if (y < 1900 || y > 2099) return 0;
+    let days = 0;
+    for (let m = 1; m <= 12; m++) days += lunarMonthDays(y, m);
+    return days + lunarLeapDays(y);
+  }
+  function lunarToSolar(y, m, d, isLeap) {
+    y = Number(y); m = Number(m); d = Number(d);
+    if (!y || !m || !d || y < 1900 || y > 2099) return null;
+    const leap = lunarLeapMonth(y);
+    if (isLeap && leap !== m) return null;
+    let monthDays = isLeap ? lunarLeapDays(y) : lunarMonthDays(y, m);
+    if (d < 1 || d > monthDays) return null;
+    let offset = 0;
+    for (let year = 1900; year < y; year++) offset += lunarYearDays(year);
+    for (let month = 1; month < m; month++) {
+      offset += lunarMonthDays(y, month);
+      if (leap === month) offset += lunarLeapDays(y);
+    }
+    if (isLeap && leap === m) offset += lunarMonthDays(y, m);
+    offset += d - 1;
+    return addDays('1900-01-31', offset);
+  }
+  function solarToLunar(dateStr) {
+    if (!dateStr || dateStr < '1900-01-31') return null;
+    let offset = diffDays('1900-01-31', dateStr);
+    let y = 1900;
+    while (y <= 2099 && offset >= lunarYearDays(y)) { offset -= lunarYearDays(y); y++; }
+    if (y > 2099) return null;
+    const leap = lunarLeapMonth(y);
+    for (let m = 1; m <= 12; m++) {
+      let days = lunarMonthDays(y, m);
+      if (offset < days) return { year: y, month: m, day: offset + 1, isLeap: false };
+      offset -= days;
+      if (leap === m) {
+        days = lunarLeapDays(y);
+        if (offset < days) return { year: y, month: m, day: offset + 1, isLeap: true };
+        offset -= days;
+      }
+    }
+    return null;
+  }
+  const LUNAR_MONTH_NAMES_ZH = ['正','二','三','四','五','六','七','八','九','十','冬','腊'];
+  const LUNAR_DAY_NAMES_ZH = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+  function lunarDateLabel(d) {
+    if (!d || d.calendar !== 'lunar') return '';
+    const month = Math.min(12, Math.max(1, Number(d.lunarMonth) || 1));
+    const day = Math.min(30, Math.max(1, Number(d.lunarDay) || 1));
+    if (lang === 'en') return (d.lunarLeap ? 'Leap ' : '') + 'Lunar ' + month + '/' + day;
+    return '农历' + (d.lunarLeap ? '闰' : '') + LUNAR_MONTH_NAMES_ZH[month - 1] + '月' + (LUNAR_DAY_NAMES_ZH[day - 1] || (day + '日'));
+  }
+  function dateDetailText(d) {
+    if (!d) return '';
+    if (d.calendar === 'lunar') {
+      const solar = d.next || d.date || '';
+      const lunar = lunarDateLabel(d);
+      return lunar + (solar ? ' · ' + formatDate(solar) : '');
+    }
+    return formatDate(d.next || d.date || '');
+  }
+
   const REPEAT_MODES = ['none','day','week','month','year','custom'];
   function normalizeDateRepeat(d) {
     if (!d) return d;
+    if (d.calendar !== 'lunar') d.calendar = 'solar';
+    if (d.calendar === 'lunar') {
+      d.lunarYear = Math.min(2099, Math.max(1900, parseInt(d.lunarYear, 10) || new Date().getFullYear()));
+      d.lunarMonth = Math.min(12, Math.max(1, parseInt(d.lunarMonth, 10) || 1));
+      d.lunarDay = Math.min(30, Math.max(1, parseInt(d.lunarDay, 10) || 1));
+      d.lunarLeap = !!d.lunarLeap;
+    }
     if (d.repeat === 'yearly') d.repeat = 'year';
     if (d.repeat === undefined || d.repeat === null) {
       d.repeat = d.annual ? 'year' : 'none';
@@ -2060,6 +2203,26 @@
     }
     return addInterval(dateStr, step * times, stepUnit);
   }
+  function nextLunarOccurrence(d, mode, every, unit) {
+    normalizeDateRepeat(d);
+    const today = todayStr();
+    if (mode === 'none') return d.date && d.date >= today ? d.date : null;
+    if (mode === 'custom' && unit !== 'year') return nextOccurrence(d.date, mode, every, unit);
+    const todayLunar = solarToLunar(today) || { year: new Date().getFullYear() };
+    const startYear = Math.max(1900, d.lunarYear || todayLunar.year, todayLunar.year);
+    const step = mode === 'custom' ? Math.max(1, parseInt(every, 10) || 1) : 1;
+    for (let y = startYear; y <= 2099; y += step) {
+      const solar = lunarToSolar(y, d.lunarMonth, d.lunarDay, d.lunarLeap);
+      if (solar && solar >= today) return solar;
+    }
+    return nextOccurrence(d.date, mode, every, unit);
+  }
+  function dateNextOccurrence(d) {
+    if (!d) return null;
+    normalizeDateRepeat(d);
+    if (d.calendar === 'lunar') return nextLunarOccurrence(d, d.repeat, d.repeatEvery, d.repeatUnit);
+    return nextOccurrence(d.date, d.repeat, d.repeatEvery, d.repeatUnit);
+  }
   function repeatLabel(d) {
     if (!d) return lang === 'en' ? 'No repeat' : '不重复';
     normalizeDateRepeat(d);
@@ -2093,8 +2256,8 @@
     state.dates.forEach(normalizeDateRepeat);
     return state.dates
       .map(d => {
-        const next = nextOccurrence(d.date, d.repeat, d.repeatEvery, d.repeatUnit);
-        return { ...d, next, days: d.date ? diffDays(todayStr(), next) : null };
+        const next = dateNextOccurrence(d);
+        return { ...d, next, days: next ? diffDays(todayStr(), next) : null };
       })
       .filter(d => d.next && d.days !== null && d.days >= 0)
       .sort((a,b) => a.days - b.days);
@@ -2735,7 +2898,7 @@
              <span style="white-space:nowrap; font-weight:700;">准备 ${hero.progress||0}%</span>
              <button class="btn btn-coral btn-sm" data-date-progress="${hero.id}">＋10%</button>
            </div>
-           <div style="position:relative; z-index:1; font-size:12px; opacity:.85; margin-top:6px;">${hero.next} · 共 ${ups.length} 个值得期待的日子</div>
+           <div style="position:relative; z-index:1; font-size:12px; opacity:.85; margin-top:6px;">${dateDetailText(hero)} · 共 ${ups.length} 个值得期待的日子</div>
          </div>`
       : `<div class="hero-top"><span>🌷</span><span>重要日期</span></div>
          <div>
@@ -2751,19 +2914,20 @@
       list.innerHTML = state.dates.slice().sort((a,b) => {
         normalizeDateRepeat(a);
         normalizeDateRepeat(b);
-        const na = nextOccurrence(a.date, a.repeat, a.repeatEvery, a.repeatUnit) || '9999-99-99';
-        const nb = nextOccurrence(b.date, b.repeat, b.repeatEvery, b.repeatUnit) || '9999-99-99';
+        const na = dateNextOccurrence(a) || '9999-99-99';
+        const nb = dateNextOccurrence(b) || '9999-99-99';
         return na.localeCompare(nb);
       }).map(d => {
         normalizeDateRepeat(d);
-        const next = nextOccurrence(d.date, d.repeat, d.repeatEvery, d.repeatUnit);
+        const next = dateNextOccurrence(d);
         const daysText = next ? (diffDays(todayStr(), next) === 0 ? '今天' : diffDays(todayStr(), next) + '天') : '已过期';
         const repeatTxt = repeatLabel(d);
         const repeatClass = d.repeat === 'none' ? 'gray' : 'gold';
+        const detail = dateDetailText(Object.assign({}, d, { next: next }));
         return `<div class="date-item">
           <div class="d-name">${esc(d.name)} <span class="pill ${repeatClass}" style="font-size:11px;">${esc(repeatTxt)}</span></div>
           <div style="text-align:right;"><span class="pill" style="background:${d.type==='生日'?'#fde9e5':d.type==='节日'?'#faf3dd':'#e3eef7'}; color:var(--text);">${esc(d.type)} · ${daysText}</span></div>
-          <div class="d-sub">${d.date ? esc(d.date) : '未设置日期'}</div>
+          <div class="d-sub">${d.date ? esc(detail) : '未设置日期'}</div>
           <div style="display:flex; align-items:center; gap:6px;">
             <button class="btn btn-ghost btn-sm" data-date-progress="${d.id}">准备 +10%</button>
             <button class="inline-delete" data-del-date="${d.id}" title="删除">✕</button>
@@ -3202,6 +3366,11 @@
     $('dateEveryUnit').addEventListener('change', updateDateRepeatUI);
     $('dateValue').addEventListener('change', updateDatePreview);
     $('dateValue').addEventListener('input', updateDatePreview);
+    if ($('dateCalendar')) $('dateCalendar').addEventListener('change', updateDateCalendarUI);
+    if ($('dateLunarYear')) $('dateLunarYear').addEventListener('input', updateDatePreview);
+    if ($('dateLunarMonth')) $('dateLunarMonth').addEventListener('change', updateDatePreview);
+    if ($('dateLunarDay')) $('dateLunarDay').addEventListener('change', updateDatePreview);
+    if ($('dateLunarLeap')) $('dateLunarLeap').addEventListener('change', updateDatePreview);
     $('dateType').addEventListener('change', () => {
       const type = $('dateType').value;
       const currentRepeat = $('dateRepeat').value;
@@ -3331,50 +3500,125 @@
       : (hintMap[cfg.mode] || '');
     updateDatePreview();
   }
+  function dateFormDraft() {
+    const calendar = $('dateCalendar') ? $('dateCalendar').value : 'solar';
+    if (calendar === 'lunar') {
+      const year = parseInt($('dateLunarYear') ? $('dateLunarYear').value : '', 10) || 0;
+      const month = parseInt($('dateLunarMonth') ? $('dateLunarMonth').value : '1', 10) || 1;
+      const day = parseInt($('dateLunarDay') ? $('dateLunarDay').value : '1', 10) || 1;
+      const leap = !!($('dateLunarLeap') && $('dateLunarLeap').checked);
+      return { calendar: 'lunar', date: lunarToSolar(year, month, day, leap), lunarYear: year, lunarMonth: month, lunarDay: day, lunarLeap: leap };
+    }
+    return { calendar: 'solar', date: $('dateValue') ? $('dateValue').value : '' };
+  }
+  function populateLunarDateOptions() {
+    const monthSel = $('dateLunarMonth');
+    const daySel = $('dateLunarDay');
+    if (monthSel) {
+      const saved = monthSel.value || '1';
+      monthSel.innerHTML = '';
+      for (let m = 1; m <= 12; m++) {
+        const opt = document.createElement('option');
+        opt.value = String(m);
+        opt.textContent = lang === 'zh' ? (LUNAR_MONTH_NAMES_ZH[m - 1] + '月') : ('Month ' + m);
+        monthSel.appendChild(opt);
+      }
+      monthSel.value = saved;
+    }
+    if (daySel) {
+      const saved = daySel.value || '1';
+      daySel.innerHTML = '';
+      for (let d = 1; d <= 30; d++) {
+        const opt = document.createElement('option');
+        opt.value = String(d);
+        opt.textContent = lang === 'zh' ? LUNAR_DAY_NAMES_ZH[d - 1] : ('Day ' + d);
+        daySel.appendChild(opt);
+      }
+      daySel.value = saved;
+    }
+  }
+  function updateDateCalendarUI() {
+    const calendar = $('dateCalendar') ? $('dateCalendar').value : 'solar';
+    const solarField = $('dateSolarField');
+    const lunarField = $('dateLunarField');
+    if (solarField) solarField.style.display = calendar === 'lunar' ? 'none' : '';
+    if (lunarField) lunarField.style.display = calendar === 'lunar' ? '' : 'none';
+    updateDatePreview();
+  }
+  function initDateCalendarUI() {
+    if (!$('dateCalendar')) return;
+    populateLunarDateOptions();
+    const todayLunar = solarToLunar(todayStr());
+    if ($('dateLunarYear') && !$('dateLunarYear').value) $('dateLunarYear').value = todayLunar ? todayLunar.year : new Date().getFullYear();
+    if ($('dateLunarMonth')) $('dateLunarMonth').value = '1';
+    if ($('dateLunarDay')) $('dateLunarDay').value = '1';
+    updateDateCalendarUI();
+  }
   function updateDatePreview() {
-    const date = $('dateValue').value;
     const cfg = dateFormRepeatConfig();
-    if (!date) {
-      $('datePreview').textContent = '📅 请先选择起始日期';
+    const draft = dateFormDraft();
+    if (!draft.date) {
+      $('datePreview').textContent = draft.calendar === 'lunar'
+        ? (lang === 'zh' ? '📅 请选择完整的农历日期' : '📅 Please choose a complete lunar date')
+        : (lang === 'zh' ? '📅 请先选择起始日期' : '📅 Please choose a start date first');
       return;
     }
-    const next = nextOccurrence(date, cfg.mode, cfg.every, cfg.unit);
+    const next = draft.calendar === 'lunar'
+      ? nextLunarOccurrence(Object.assign({}, draft, { repeat: cfg.mode, repeatEvery: cfg.every, repeatUnit: cfg.unit }), cfg.mode, cfg.every, cfg.unit)
+      : nextOccurrence(draft.date, cfg.mode, cfg.every, cfg.unit);
     if (!next) {
-      $('datePreview').textContent = '📭 这是一次性日期，且已经过期，不会再次出现';
+      $('datePreview').textContent = lang === 'zh' ? '📭 这是一次性日期，且已经过期，不会再次出现' : '📭 This one-time date has passed and will not recur';
       return;
     }
     const days = diffDays(todayStr(), next);
-    const when = days === 0 ? '就是今天 🎉' : days === 1 ? '明天' : `还有 ${days} 天`;
+    const when = days === 0 ? (lang === 'zh' ? '就是今天 🎉' : 'Today 🎉') : days === 1 ? (lang === 'zh' ? '明天' : 'Tomorrow') : (lang === 'zh' ? `还有 ${days} 天` : `${days} days from now`);
+    const unitEn = { day: ['day', 'days'], week: ['week', 'weeks'], month: ['month', 'months'], year: ['year', 'years'] }[cfg.unit] || ['year', 'years'];
     const repeatTxt = cfg.mode === 'custom'
-      ? `每${cfg.every}${({day:'天',week:'周',month:'个月',year:'年'})[cfg.unit] || '年'}`
-      : ({none:'不重复',day:'每天',week:'每周',month:'每月',year:'每年'})[cfg.mode];
-    $('datePreview').textContent = `📅 下一次：${next}（${when}） · ${repeatTxt}`;
+      ? (lang === 'zh' ? `每${cfg.every}${({day:'天',week:'周',month:'个月',year:'年'})[cfg.unit] || '年'}` : `Every ${cfg.every} ${cfg.every === 1 ? unitEn[0] : unitEn[1]}`)
+      : (lang === 'zh' ? ({none:'不重复',day:'每天',week:'每周',month:'每月',year:'每年'})[cfg.mode] : ({none:'No repeat',day:'Daily',week:'Weekly',month:'Monthly',year:'Yearly'})[cfg.mode]);
+    if (draft.calendar === 'lunar') {
+      $('datePreview').textContent = lang === 'zh'
+        ? `📅 下一次：${next}（${lunarDateLabel(draft)}，${when}） · ${repeatTxt}`
+        : `📅 Next: ${next} (${lunarDateLabel(draft)}, ${when}) · ${repeatTxt}`;
+    } else {
+      $('datePreview').textContent = lang === 'zh'
+        ? `📅 下一次：${next}（${when}） · ${repeatTxt}`
+        : `📅 Next: ${next} (${when}) · ${repeatTxt}`;
+    }
   }
-
   function addDate() {
     const name = $('dateName').value.trim();
-    const date = $('dateValue').value;
-    if (!name || !date) { toast('请填写名称和日期'); return; }
+    const draft = dateFormDraft();
+    if (!name || !draft.date) { toast('请填写名称和日期'); return; }
     const cfg = dateFormRepeatConfig();
-    state.dates.push({
+    const item = {
       id: uid(),
       name,
       type: $('dateType').value,
-      date,
+      calendar: draft.calendar,
+      date: draft.date,
       repeat: cfg.mode,
       repeatEvery: cfg.every,
       repeatUnit: cfg.unit,
       progress: 0
-    });
+    };
+    if (draft.calendar === 'lunar') {
+      item.lunarYear = draft.lunarYear;
+      item.lunarMonth = draft.lunarMonth;
+      item.lunarDay = draft.lunarDay;
+      item.lunarLeap = draft.lunarLeap;
+    }
+    state.dates.push(item);
     $('dateName').value = '';
+    if ($('dateCalendar')) $('dateCalendar').value = 'solar';
     $('dateValue').value = '';
     $('dateRepeat').value = 'year';
     $('dateEvery').value = 1;
     $('dateEveryUnit').value = 'year';
+    updateDateCalendarUI();
     updateDateRepeatUI();
     save(); renderAll(); toast('已添加重要日期');
   }
-
   function addEntryAction() {
     const date = $('entryDate').value;
     const type = $('entryType').value;
@@ -3462,6 +3706,7 @@
     if (!$('todoDue').value) $('todoDue').value = todayStr();
     if (!$('dateValue').value) $('dateValue').value = addDays(todayStr(), 14);
     if ($('milestoneDate') && !$('milestoneDate').value) $('milestoneDate').value = todayStr();
+    initDateCalendarUI();
     updateDateRepeatUI();
     resetTodoForm();
     resetMemoForm();
