@@ -1538,7 +1538,14 @@
     d.setDate(d.getDate() + n);
     return toYMD(d);
   }
-  function monthLabel(str) { return (str || todayStr().slice(0,7)).slice(0,7).replace('-', '年') + '月'; }
+  function monthLabel(str) {
+    const value = (str || todayStr().slice(0,7)).slice(0,7);
+    if (lang === 'en') {
+      const d = new Date(Number(value.slice(0,4)), Number(value.slice(5,7))-1, 1);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+    }
+    return value.replace('-', '年') + '月';
+  }
   function diffDays(from, to) {
     const a = new Date(from + 'T00:00:00').getTime();
     const b = new Date(to + 'T00:00:00').getTime();
@@ -1547,6 +1554,10 @@
   function formatDate(dateStr) {
     if (!dateStr) return '';
     const [y,m,d] = dateStr.split('-');
+    if (lang === 'en') {
+      const date = new Date(Number(y), Number(m)-1, Number(d));
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
     return `${Number(m)}月${Number(d)}日`;
   }
   function esc(s) {
@@ -1802,8 +1813,8 @@
       'todo.add':'＋ Add Todo', 'todo.addTitle':'New Todo', 'todo.name':'Task name *', 'todo.type':'Type', 'todo.due':'Due date', 'todo.priority':'Priority', 'todo.status':'Status', 'todo.hours':'Est. hours', 'todo.repeat':'Repeat', 'todo.cycle':'Recurring reminder', 'todo.note':'Note', 'todo.cancel':'Cancel', 'todo.save':'Save Todo', 'todo.edit':'Edit Todo', 'todo.delete':'Delete', 'todo.saveShort':'Save', 'todo.filter':'Filter by type', 'todo.all':'All types', 'todo.today':'Today', 'todo.future':'Next 7 Days', 'todo.overdue':'Overdue', 'todo.done':'Completed',
       'habit.title':'🌿 Habit Tracking', 'habit.tool':'Light a small flower every day; continuous days become a garland', 'habit.new':'New habit name', 'habit.add':'＋ Add Habit', 'habit.pause':'Pause', 'habit.resume':'Resume', 'habit.check':'☑ Check in', 'habit.doneToday':'Checked today ✓', 'habit.streak':'Streak', 'habit.total':'Total', 'habit.paused':'Paused',
       'dates.title':'💝 Important Dates', 'dates.tool':'Write expectations into countdowns; preparations grow day by day', 'dates.add':'✚ Add Important Date', 'dates.addHint':'Custom repeat available', 'dates.name':'Name *', 'dates.type':'Type', 'dates.date':'Start date *', 'dates.repeat':'Repeat rule', 'dates.every':'Every', 'dates.everyUnit':'day/week/month/year', 'dates.customHint':'Repeats once (only for Custom interval)', 'dates.addBtn':'＋ Add',
-      'ledger.title':'💰 Expense Ledger', 'ledger.tool':'Entering “食堂午餐” auto-categorizes as Dining', 'ledger.budget':'🎯 Monthly Budget', 'ledger.month':'Budget month', 'ledger.amount':'Budget amount', 'ledger.saveBudget':'Save Budget', 'ledger.leftAmount':'Left this month', 'ledger.used':'Used', 'ledger.leftDays':'Days left', 'ledger.daily':'Daily available', 'ledger.income':'Income this month', 'ledger.expense':'Expense this month', 'ledger.balance':'Balance this month', 'ledger.entry':'Add Entry', 'ledger.date':'Date', 'ledger.incomeType':'Income/Expense', 'ledger.category':'Category', 'ledger.money':'Amount *', 'ledger.pay':'Payment method', 'ledger.desc':'Description (try “食堂午餐”)', 'ledger.add':'Add Entry', 'ledger.records':'📒 Entries',
-      'first.title':'✨ First-Time Experiences', 'first.tool':'First times can be small, yet still worth treasuring', 'first.add':'Record a New First', 'first.name':'Event name *', 'first.category':'Category', 'first.date':'Date', 'first.desc':'One-line description', 'first.save':'Save First Experience', 'settings.title':'⚙️ Settings', 'settings.motion':'Animations', 'settings.motionDesc':'Turn off to reduce transitions and animations for smoother scrolling', 'settings.blur':'Frosted glass', 'settings.blurDesc':'Auto: off on mobile, on on desktop. You can also force it on or off.', 'settings.blurAuto':'Auto', 'settings.blurOn':'On', 'settings.blurOff':'Off', 'settings.close':'Close', 'settings.theme':'Theme mode', 'settings.themeDesc':'Light / Dark / System', 'settings.themeAuto':'Follow system', 'settings.themeLight':'Light', 'settings.themeDark':'Dark', 'settings.lang':'Language', 'settings.langDesc':'中文 / English', 'settings.langZh':'中文', 'settings.langEn':'English', 'settings.density':'Density', 'settings.densityDesc':'Wide / Normal / Compact', 'settings.densityWide':'Wide', 'settings.densityNormal':'Normal', 'settings.densityCompact':'Compact', 'settings.sidebarSide':'Sidebar side', 'settings.sidebarDesc':'Show on left or right', 'settings.sidebarLeft':'Left', 'settings.sidebarRight':'Right', 'settings.reminderEnabled':'Daily reminder', 'settings.reminderEnabledDesc':'Turn the daily notification on or off', 'settings.reminderTime':'Reminder time', 'settings.reminderTimeDesc':'Notify me at this time every day', 'settings.reminderAlarm':'Reminder sound', 'settings.reminderAlarmDesc':'Notification sound or alarm', 'settings.reminderAlarmNormal':'Notification sound', 'settings.reminderAlarmRing':'Alarm', 'settings.mobileStart':'Mobile start page', 'settings.mobileStartDesc':'Default page when opening on mobile', 'settings.pageHome':'Home', 'settings.pageTodo':'Todos', 'settings.pageHabit':'Habits', 'settings.pageDates':'Dates', 'settings.pageLedger':'Ledger', 'settings.pageFirst':'First Times', 'settings.pageMilestones':'Chronicle', 'settings.pageMemos':'Memos', 'settings.clearData':'Clear all data', 'settings.palette':'Color theme', 'settings.paletteDesc':'Choose more color themes beyond light / dark mode', 'settings.paletteClassic':'Classic', 'settings.paletteSakura':'Sakura Pink', 'settings.paletteMint':'Mint', 'settings.paletteOcean':'Ocean Blue', 'settings.paletteSunset':'Sunset Orange', 'settings.paletteViolet':'Violet', 'settings.popupMode':'Popup mode', 'settings.popupModeDesc':'Bottom sheet / Center / Auto', 'settings.popupAuto':'Auto', 'settings.popupSheet':'Bottom sheet', 'settings.popupCenter':'Center', 'reminder.title':'🔔 Reminder Center', 'reminder.enable':'Enable Notifications', 'reminder.test':'Test Notification', 'reminder.daily':'Daily Summary', 'reminder.close':'Close', 'reminder.todo':'Todos today', 'reminder.habit':'Habits left', 'reminder.date':'Upcoming date', 'reminder.none':'No urgent reminders today. Enjoy your day ✨', 'reminder.exportIcs':'Export calendar reminders', 'reminder.fileNoticeTitle':'System notifications unavailable', 'reminder.fileNotice':'Opened as a local file, the browser cannot grant system notification permission. Use the HTTPS online version, or export .ics to your phone calendar.'
+      'ledger.title':'💰 Expense Ledger', 'ledger.tool':'Enter “Canteen lunch” to auto-categorize as Dining', 'ledger.budget':'🎯 Monthly Budget', 'ledger.month':'Budget month', 'ledger.amount':'Budget amount', 'ledger.saveBudget':'Save Budget', 'ledger.leftAmount':'Left this month', 'ledger.used':'Used', 'ledger.leftDays':'Days left', 'ledger.daily':'Daily available', 'ledger.income':'Income this month', 'ledger.expense':'Expense this month', 'ledger.balance':'Balance this month', 'ledger.entry':'Add Entry', 'ledger.date':'Date', 'ledger.incomeType':'Income/Expense', 'ledger.category':'Category', 'ledger.money':'Amount *', 'ledger.pay':'Payment method', 'ledger.desc':'Description (try “Canteen lunch”)', 'ledger.add':'Add Entry', 'ledger.records':'📒 Entries',
+      'first.title':'✨ First-Time Experiences', 'first.tool':'First times can be small, yet still worth treasuring', 'first.add':'Record a New First', 'first.name':'Event name *', 'first.category':'Category', 'first.date':'Date', 'first.desc':'One-line description', 'first.save':'Save First Experience', 'settings.title':'⚙️ Settings', 'settings.motion':'Animations', 'settings.motionDesc':'Turn off to reduce transitions and animations for smoother scrolling', 'settings.blur':'Frosted glass', 'settings.blurDesc':'Auto: off on mobile, on on desktop. You can also force it on or off.', 'settings.blurAuto':'Auto', 'settings.blurOn':'On', 'settings.blurOff':'Off', 'settings.close':'Close', 'settings.theme':'Theme mode', 'settings.themeDesc':'Light / Dark / System', 'settings.themeAuto':'Follow system', 'settings.themeLight':'Light', 'settings.themeDark':'Dark', 'settings.lang':'Language', 'settings.langDesc':'Chinese / English', 'settings.langZh':'Chinese', 'settings.langEn':'English', 'settings.density':'Density', 'settings.densityDesc':'Wide / Normal / Compact', 'settings.densityWide':'Wide', 'settings.densityNormal':'Normal', 'settings.densityCompact':'Compact', 'settings.sidebarSide':'Sidebar side', 'settings.sidebarDesc':'Show on left or right', 'settings.sidebarLeft':'Left', 'settings.sidebarRight':'Right', 'settings.reminderEnabled':'Daily reminder', 'settings.reminderEnabledDesc':'Turn the daily notification on or off', 'settings.reminderTime':'Reminder time', 'settings.reminderTimeDesc':'Notify me at this time every day', 'settings.reminderAlarm':'Reminder sound', 'settings.reminderAlarmDesc':'Notification sound or alarm', 'settings.reminderAlarmNormal':'Notification sound', 'settings.reminderAlarmRing':'Alarm', 'settings.mobileStart':'Mobile start page', 'settings.mobileStartDesc':'Default page when opening on mobile', 'settings.pageHome':'Home', 'settings.pageTodo':'Todos', 'settings.pageHabit':'Habits', 'settings.pageDates':'Dates', 'settings.pageLedger':'Ledger', 'settings.pageFirst':'First Times', 'settings.pageMilestones':'Chronicle', 'settings.pageMemos':'Memos', 'settings.clearData':'Clear all data', 'settings.palette':'Color theme', 'settings.paletteDesc':'Choose more color themes beyond light / dark mode', 'settings.paletteClassic':'Classic', 'settings.paletteSakura':'Sakura Pink', 'settings.paletteMint':'Mint', 'settings.paletteOcean':'Ocean Blue', 'settings.paletteSunset':'Sunset Orange', 'settings.paletteViolet':'Violet', 'settings.popupMode':'Popup mode', 'settings.popupModeDesc':'Bottom sheet / Center / Auto', 'settings.popupAuto':'Auto', 'settings.popupSheet':'Bottom sheet', 'settings.popupCenter':'Center', 'reminder.title':'🔔 Reminder Center', 'reminder.enable':'Enable Notifications', 'reminder.test':'Test Notification', 'reminder.daily':'Daily Summary', 'reminder.close':'Close', 'reminder.todo':'Todos today', 'reminder.habit':'Habits left', 'reminder.date':'Upcoming date', 'reminder.none':'No urgent reminders today. Enjoy your day ✨', 'reminder.exportIcs':'Export calendar reminders', 'reminder.fileNoticeTitle':'System notifications unavailable', 'reminder.fileNotice':'Opened as a local file, the browser cannot grant system notification permission. Use the HTTPS online version, or export .ics to your phone calendar.'
     }
   };
 
@@ -1820,49 +1831,349 @@
     '＋ 新增待办':'＋ Add Todo', '新增待办':'New Todo', '任务名称 *':'Task name *', '所属类型':'Type', '截止日期':'Due date', '优先级':'Priority', '状态':'Status', '预计耗时（小时）':'Est. hours', '是否重复':'Repeat', '周期性提醒':'Recurring reminder', '备注':'Note', '取消':'Cancel', '保存待办':'Save Todo', '编辑待办':'Edit Todo', '删除':'Delete', '保存':'Save', '按类型筛选':'Filter by type', '全部类型':'All types', '今日':'Today', '未来 7 天':'Next 7 Days', '已逾期':'Overdue', '已完成':'Completed',
     '每天点亮一朵小花，连续的日子会连成花环':'Light a small flower every day; continuous days become a garland', '新习惯名称':'New habit name', '＋ 新增习惯':'＋ Add Habit', '连续天数':'Streak', '总次数':'Total', '今日已打卡 ✓':'Checked today ✓', '已暂停':'Paused',
     '把期待写在倒计时里，准备也在一点点完成':'Write expectations into countdowns; preparations grow day by day', '✚ 添加重要日期':'✚ Add Important Date', '重复可自定义':'Custom repeat available', '名称 *':'Name *', '类型':'Type', '起始日期 *':'Start date *', '重复规则':'Repeat rule', '每':'Every', '天':'Day', '周':'Week', '月':'Month', '年':'Year', '重复一次（仅“自定义间隔”时生效）':'Repeats once (only for Custom interval)', '＋ 添加':'＋ Add',
-    '输入说明「食堂午餐」会自动归类为餐饮':'Entering “食堂午餐” auto-categorizes as Dining', '🎯 月预算设置':'🎯 Monthly Budget', '预算月份':'Budget month', '预算金额':'Budget amount', '保存预算':'Save Budget', '已使用':'Used', '剩余天数':'Days left', '日均可用':'Daily available', '记一笔':'Add Entry', '日期':'Date', '收支类型':'Income/Expense', '消费分类':'Category', '金额 *':'Amount *', '支付方式':'Payment method', '消费说明（试试“食堂午餐”）':'Description (try “食堂午餐”)', '记入账本':'Add Entry', '📒 流水记录':'📒 Entries',
+    '输入说明「食堂午餐」会自动归类为餐饮':'Entering “食堂午餐” auto-categorizes as Dining', '🎯 月预算设置':'🎯 Monthly Budget', '预算月份':'Budget month', '预算金额':'Budget amount', '保存预算':'Save Budget', '已使用':'Used', '剩余天数':'Days left', '日均可用':'Daily available', '记一笔':'Add Entry', '日期':'Date', '收支类型':'Income/Expense', '消费分类':'Category', '金额 *':'Amount *', '支付方式':'Payment method', '消费说明（试试“食堂午餐”）':'Description (try “Canteen lunch”)', '记入账本':'Add Entry', '📒 流水记录':'📒 Entries',
     '第一次也许很小，但都值得郑重收藏':'First times can be small, yet still worth treasuring', '记录一个新第一次':'Record a New First', '事件名称 *':'Event name *', '分类':'Category', '一句话描述':'One-line description', '收藏这个第一次':'Save First Experience',
-    '学习':'Study', '自媒体':'Content', '杂事':'Misc', '未开始':'Not started', '进行中':'In progress', '已完成':'Done', '已延期':'Postponed', '生日':'Birthday', '纪念日':'Anniversary', '节日':'Festival', '其他':'Other', '不重复':'No repeat', '每天':'Daily', '每周':'Weekly', '每月':'Monthly', '每年':'Yearly', '自定义间隔…':'Custom interval…', '餐饮':'Dining', '交通':'Transport', '娱乐':'Fun', '购物':'Shopping', '住宿':'Housing', '微信':'WeChat', '支付宝':'Alipay', '现金':'Cash', '银行卡':'Bank card', '支出':'Expense', '收入':'Income', '旅行':'Travel', '生活':'Life', '社交':'Social', '成长':'Growth', '每年重复（默认）':'Yearly (default)', '不重复（只提醒一次）':'No repeat (one-time)', '每月重复':'Monthly', '每周重复':'Weekly', '每天重复':'Daily'
+    '学习':'Study', '自媒体':'Content', '杂事':'Misc', '未开始':'Not started', '进行中':'In progress', '已完成':'Done', '已延期':'Postponed', '生日':'Birthday', '纪念日':'Anniversary', '节日':'Festival', '其他':'Other', '不重复':'No repeat', '每天':'Daily', '每周':'Weekly', '每月':'Monthly', '每年':'Yearly', '自定义间隔…':'Custom interval…', '餐饮':'Dining', '交通':'Transport', '娱乐':'Fun', '购物':'Shopping', '住宿':'Housing', '微信':'WeChat', '支付宝':'Alipay', '现金':'Cash', '银行卡':'Bank card', '支出':'Expense', '收入':'Income', '旅行':'Travel', '生活':'Life', '社交':'Social', '成长':'Growth', '每年重复（默认）':'Yearly (default)', '不重复（只提醒一次）':'No repeat (one-time)', '每月重复':'Monthly', '每周重复':'Weekly', '每天重复':'Daily',
+    "花笺": "Huajian",
+    "花笺 · 大学生活手记": "Huajian · College Life Dashboard",
+    "花笺 · 大学生活手记 手机版": "Huajian · College Life Dashboard · Mobile",
+    "花笺 · 大学生活手记 电脑版": "Huajian · College Life Dashboard · Desktop",
+    "好朋友的生日": "Best Friend's Birthday",
+    "打开侧边栏": "Open sidebar",
+    "收起侧边栏": "Collapse sidebar",
+    "导航侧边栏": "Navigation sidebar",
+    "拖动调整宽度": "Drag to resize",
+    "调整侧边栏顺序": "Reorder sidebar",
+    "上移": "Move up",
+    "下移": "Move down",
+    "小时/h": "Hours/h",
+    "分钟/min": "Minutes/min",
+    "秒/s": "Seconds/s",
+    "写点什么待办呢？": "Write a todo…",
+    "添加自定义分类": "Add custom category",
+    "删除当前自定义分类": "Delete current custom category",
+    "如 1.5": "e.g. 1.5",
+    "补充说明、链接或心情……": "Notes, links, or mood…",
+    "标记完成": "Mark complete",
+    "恢复未完成": "Mark incomplete",
+    "例如：背 30 个单词": "e.g., memorize 30 words",
+    "例如：妈妈生日、恋爱纪念日、考试周": "e.g., Mom's birthday, anniversary, exam week",
+    "例：食堂午餐、地铁充值、买一本二手书": "e.g., canteen lunch, metro top-up, a used book",
+    "例如：第一次上台答辩": "e.g., first thesis defense",
+    "当时的心情、细节，或后来的自己想说的一句话……": "How it felt, details, or a line to your future self…",
+    "例如：收到录取通知书": "e.g., receiving an admission letter",
+    "例如：学校 / 家里 / 某个城市": "e.g., school / home / a city",
+    "发生了什么？当时的感受？后来回看有什么想说的？": "What happened? How did you feel? What would you say looking back?",
+    "例如：周末采购清单": "e.g., weekend shopping list",
+    "写点什么……支持换行": "Write something… line breaks supported",
+    "🔍 搜索备忘录...": "🔍 Search memos...",
+    "关闭": "Close",
+    "开关动画": "Toggle animations",
+    "每日提醒": "Daily reminder",
+    "无截止": "No due date",
+    "重复": "Repeat",
+    "更新于": "Updated",
+    "快记下值得纪念的事吧": "Record something worth remembering",
+    "💐 下一个要期待的日子": "💐 Next day to look forward to",
+    "暂无未来日期": "No upcoming dates",
+    "添加生日、纪念日或节日": "Add birthdays, anniversaries, or festivals",
+    "还没有重要日期，添加后会有倒计时 hero 卡": "No important dates yet. Add one to see a countdown hero card.",
+    "已过期": "Expired",
+    "未设置日期": "No date set",
+    "准备 +10%": "Prepare +10%",
+    "今日全部完成，真棒！": "All done today. Great job!",
+    "今日小花正在开放中": "Today’s flowers are blooming",
+    "设置月预算开始管理吧": "Set a monthly budget to start tracking",
+    "记录第一个“第一次”": "Record your first “first time”",
+    "这个月还没有流水": "No entries this month",
+    "（无说明）": "(No description)",
+    "还没有“人生第一次”收藏，去创造一个小小里程碑吧": "No first-time experiences yet. Go create a small milestone!",
+    "没有留下描述": "No description",
+    "还没有大事记，记下人生里的重要时刻吧": "No milestones yet. Record the important moments in your life!",
+    "还没有备忘录，随手记一条吧": "No memos yet. Jot one down!",
+    "记录一件大事": "Record a Milestone",
+    "事件标题 *": "Event title *",
+    "日期 *": "Date *",
+    "重要程度": "Importance",
+    "地点": "Location",
+    "描述": "Description",
+    "记下这件大事": "Save Milestone",
+    "🕰️ 大事年表": "🕰️ Chronicle",
+    "标题 *": "Title *",
+    "便签颜色": "Note color",
+    "置顶": "Pin",
+    "⭐ 置顶": "⭐ Pinned",
+    "内容": "Content",
+    "取消编辑": "Cancel edit",
+    "保存备忘录": "Save Memo",
+    "新建备忘录": "New Memo",
+    "编辑备忘录": "Edit Memo",
+    "更新备忘录": "Update Memo",
+    "全部分类": "All categories",
+    "灵感": "Inspiration",
+    "清单": "List",
+    "生活": "Life",
+    "学业": "Academics",
+    "工作": "Work",
+    "情感": "Relationships",
+    "健康": "Health",
+    "奶油": "Cream",
+    "珊瑚": "Coral",
+    "墨绿": "Dark Green",
+    "金黄": "Gold",
+    "淡蓝": "Light Blue",
+    "导出内容": "Export content",
+    "复制内容": "Copy content",
+    "下载文件": "Download file",
+    "分享文件": "Share file",
+    "手动下载": "Manual download",
+    "中文 / English": "Chinese / English",
+    "中文": "Chinese",
+    "🍅 专注": "🍅 Focus",
+    "☕ 休息": "☕ Break",
+    "🔊 结束音效": "🔊 End sound",
+    "默认提示音": "Default sound",
+    "自定义音效": "Custom sound",
+    "上传音效": "Upload sound",
+    "试听": "Preview",
+    "每年同一天提醒": "Reminds you on the same day every year",
+    "只在起始日期提醒一次": "Reminds once on the start date",
+    "每天都会提醒": "Reminds every day",
+    "每周同一天提醒": "Reminds on the same day every week",
+    "每月同一天提醒": "Reminds on the same day every month",
+    "按你设置的间隔重复": "Repeats at your custom interval",
+    "📅 请先选择起始日期": "📅 Please choose a start date first",
+    "📭 这是一次性日期，且已经过期，不会再次出现": "📭 This one-time date has passed and will not recur",
+    "就是今天 🎉": "Today 🎉",
+    "明天": "Tomorrow",
+    "今天": "Today",
+    "已删除": "Deleted",
+    "已删除习惯": "Habit deleted",
+    "已删除记录": "Record deleted",
+    "已删除该笔": "Entry deleted",
+    "已恢复习惯": "Habit resumed",
+    "已新增习惯": "Habit added",
+    "已记入账本": "Entry saved",
+    "待办已删除": "Todo deleted",
+    "待办已完成": "Todo completed",
+    "备忘录已保存": "Memo saved",
+    "备忘录已更新": "Memo updated",
+    "已删除备忘录": "Memo deleted",
+    "已删除大事记": "Milestone deleted",
+    "已删除重要日期": "Important date deleted",
+    "已恢复为未完成": "Marked as not completed",
+    "已添加重要日期": "Important date added",
+    "请填写习惯名称": "Please enter a habit name",
+    "请填写任务名称": "Please enter a task name",
+    "今天已经打过卡啦": "Already checked in today",
+    "已记入大事记 📜": "Milestone saved 📜",
+    "请填写名称和日期": "Please fill in the name and date",
+    "已收藏这个第一次 ✨": "First experience saved ✨",
+    "至少写一个标题或内容": "Add a title or some content",
+    "请填写事件名称和日期": "Please fill in the event name and date",
+    "请填写事件标题和日期": "Please fill in the event title and date",
+    "请填写日期和有效金额": "Please fill in a valid date and amount",
+    "请输入有效的月份和预算金额": "Please enter a valid month and budget amount",
+    "自定义音效已保存": "Custom sound saved",
+    "未设置": "Not set",
+    "提醒中心": "Reminder Center",
+    "编辑": "Edit",
+    "设置": "Settings",
+    "★★★★★ 人生级": "★★★★★ Life-defining",
+    "★★★★☆ 很重要": "★★★★☆ Very important",
+    "★★★☆☆ 值得记住": "★★★☆☆ Worth remembering",
+    "★★☆☆☆ 小里程碑": "★★☆☆☆ Small milestone",
+    "★☆☆☆☆ 一点微光": "★☆☆☆☆ A little spark",
+    "“没有留下描述”": "“No description”"
   };
 
 
+
+  let i18nObserver = null;
+  let i18nApplying = false;
+
+  function replaceTrimmed(raw, replacement) {
+    const lead = raw.match(/^\s*/)[0];
+    const trail = raw.match(/\s*$/)[0];
+    return lead + replacement + trail;
+  }
+
+  const ZH_TO_EN_RULES = [
+    { re: /^(\d+)\s*\/\s*(\d+)\s*件已完成$/, en: m => m[1] + ' / ' + m[2] + ' completed' },
+    { re: /^(\d+)\s*天$/, en: m => m[1] + ' day' + (Number(m[1]) === 1 ? '' : 's') },
+    { re: /^(\d+)\s*件$/, en: m => m[1] + ' item' + (Number(m[1]) === 1 ? '' : 's') },
+    { re: /^(\d+)\s*条记录$/, en: m => m[1] + ' entr' + (Number(m[1]) === 1 ? 'y' : 'ies') },
+    { re: /^每\s*(\d+)\s*(天|周|月|年)$/, en: m => {
+        const n = Number(m[1]);
+        const units = { '天': ['day', 'days'], '周': ['week', 'weeks'], '月': ['month', 'months'], '年': ['year', 'years'] };
+        const u = units[m[2]] || units['年'];
+        return 'Every ' + n + ' ' + (n === 1 ? u[0] : u[1]);
+      } },
+    { re: /^准备\s*(\d+)%$/, en: m => 'Prepared ' + m[1] + '%' },
+    { re: /^更新于\s*(.+)$/, en: m => 'Updated ' + m[1] },
+    { re: /^(.+?)\s*的收支$/, en: m => 'Income & Expenses · ' + m[1].trim() },
+    { re: /^(\d{4})年(\d{1,2})月\s*的收支$/, en: m => 'Income & Expenses · ' + m[1] + '-' + String(m[2]).padStart(2, '0') },
+    { re: /^(\d{4})年(\d{1,2})月预算已保存\s*¥(.+)$/, en: m => 'Budget saved for ' + m[1] + '-' + String(m[2]).padStart(2, '0') + ': ¥' + m[3] },
+    { re: /^(\d{4})年(\d{1,2})月$/, en: m => m[1] + '-' + String(m[2]).padStart(2, '0') },
+    { re: /^已用\s*¥(.+?)\s*\/\s*¥(.+)$/, en: m => 'Used ¥' + m[1] + ' / ¥' + m[2] },
+    { re: /^剩余\s*¥(.+?)\s*·\s*已用\s*¥(.+)$/, en: m => 'Left ¥' + m[1] + ' · Used ¥' + m[2] },
+    { re: /^共\s*(\d+)\s*个值得期待的日子$/, en: m => m[1] + ' upcoming date' + (Number(m[1]) === 1 ? '' : 's') },
+    { re: /^📅 下一次：(.+?)（还有\s*(\d+)\s*天）$/, en: m => '📅 Next: ' + m[1] + ' (in ' + m[2] + ' days)' },
+    { re: /^📅 下一次：(.+?)（就是今天 🎉）$/, en: m => '📅 Next: ' + m[1] + ' (today 🎉)' },
+    { re: /^📅 下一次：(.+?)（明天）$/, en: m => '📅 Next: ' + m[1] + ' (tomorrow)' },
+    { re: /^距离\s*(.+)$/, en: m => m[1] },
+    { re: /^就是\s*(.+)$/, en: m => m[1] },
+    { re: /^「(.+)」准备进度 \+10%$/, en: m => '“' + m[1] + '” preparation progress +10%' },
+    { re: /^「(.+)」准备进度 \+10%，目前 (\d+)%$/, en: m => '“' + m[1] + '” preparation progress +10%, now ' + m[2] + '%' },
+    { re: /^「(.+)」已暂停$/, en: m => '“' + m[1] + '” paused' },
+    { re: /^「(.+)」已恢复$/, en: m => '“' + m[1] + '” resumed' },
+    { re: /^(.+?)预算已保存\s*¥(.+)$/, en: m => 'Budget saved for ' + m[1] + ': ¥' + m[2] },
+    { re: /^打卡成功，已连续 (\d+) 天$/, en: m => 'Checked in! ' + m[1] + '-day streak' },
+    { re: /^打卡成功，断签后重新从 1 天开始$/, en: () => 'Checked in! Streak restarts at 1 day' }
+  ];
+
+  const ZH_TO_EN_PHRASES = [
+    ['个值得期待的日子', 'upcoming dates'],
+    ['件已完成', 'completed'],
+    ['条记录', 'entries'],
+    ['预算已保存', 'budget saved'],
+    ['准备进度', 'preparation progress'],
+    ['天后', 'days'],
+    ['更新于', 'Updated'],
+    ['准备', 'Prepared'],
+    ['已用', 'Used'],
+    ['剩余', 'Left'],
+    ['距离', ''],
+    ['就是', '']
+  ];
+
+  const EN_TO_ZH = Object.fromEntries(Object.entries(TEXT_MAP).map(([zh, en]) => [en, zh]));
+
+  function applyPhraseFallback(text) {
+    let out = text;
+    for (const pair of ZH_TO_EN_PHRASES) {
+      if (out.indexOf(pair[0]) >= 0) out = out.split(pair[0]).join(pair[1]);
+    }
+    return out;
+  }
+
+  function applyDateFallback(text) {
+    return text
+      .replace(/(\d{4})年(\d{1,2})月(\d{1,2})日/g, (m, y, mo, d) => y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0'))
+      .replace(/(\d{1,2})月(\d{1,2})日/g, (m, mo, d) => Number(mo) + '/' + Number(d))
+      .replace(/(\d{4})年(\d{1,2})月/g, (m, y, mo) => y + '-' + String(mo).padStart(2, '0'));
+  }
+
+  function translateSegmentToEn(segment) {
+    const text = segment.trim();
+    if (!text) return segment;
+    if (TEXT_MAP[text]) return TEXT_MAP[text];
+    for (const rule of ZH_TO_EN_RULES) {
+      const m = text.match(rule.re);
+      if (m) return rule.en(m);
+    }
+    let out = applyDateFallback(text);
+    out = applyPhraseFallback(out);
+    return out;
+  }
+
+  function zhToEnText(raw) {
+    if (typeof raw !== 'string' || !/[\u4e00-\u9fff]/.test(raw)) return raw;
+    const text = raw.trim();
+    if (!text) return raw;
+    if (TEXT_MAP[text]) return replaceTrimmed(raw, TEXT_MAP[text]);
+    for (const rule of ZH_TO_EN_RULES) {
+      const m = text.match(rule.re);
+      if (m) return replaceTrimmed(raw, rule.en(m));
+    }
+    if (text.indexOf(' · ') >= 0) {
+      const parts = text.split(' · ');
+      const next = parts.map(translateSegmentToEn);
+      const joined = next.join(' · ');
+      if (joined !== text) return replaceTrimmed(raw, joined);
+    }
+    let out = applyDateFallback(raw);
+    out = applyPhraseFallback(out);
+    return out !== raw ? out : raw;
+  }
+
+  function enToZhText(raw) {
+    if (typeof raw !== 'string' || !/[A-Za-z]/.test(raw)) return raw;
+    const text = raw.trim();
+    if (!text) return raw;
+    if (EN_TO_ZH[text]) return replaceTrimmed(raw, EN_TO_ZH[text]);
+    if (text.indexOf(' · ') >= 0) {
+      const parts = text.split(' · ');
+      const next = parts.map(part => {
+        const p = part.trim();
+        return EN_TO_ZH[p] || p;
+      });
+      const joined = next.join(' · ');
+      if (joined !== text) return replaceTrimmed(raw, joined);
+    }
+    return raw;
+  }
+
+  function translateUiText(raw, toEn) {
+    return toEn ? zhToEnText(raw) : enToZhText(raw);
+  }
+
   function translateStatic() {
-    // First translate elements carrying explicit data-i18n keys
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (I18N[lang] && I18N[lang][key]) el.textContent = I18N[lang][key];
-    });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-      const key = el.getAttribute('data-i18n-placeholder');
-      if (I18N[lang] && I18N[lang][key]) el.setAttribute('placeholder', I18N[lang][key]);
-    });
-    const langBtn = document.getElementById('langToggleText');
-    if (langBtn) langBtn.textContent = lang === 'zh' ? 'English' : '中文';
-    // In default Chinese mode, skip the expensive DOM text walker unless it was
-    // previously translated to English.
-    if (lang === 'zh' && !textMapDirty) return;
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    const nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-    if (lang === 'en') {
+    if (i18nApplying) return;
+    i18nApplying = true;
+    if (i18nObserver) i18nObserver.disconnect();
+    try {
+      const toEn = lang === 'en';
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const dict = I18N[lang] || {};
+        if (dict[key]) el.textContent = dict[key];
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        const dict = I18N[lang] || {};
+        if (dict[key]) el.setAttribute('placeholder', dict[key]);
+      });
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        const parent = node.parentNode;
+        if (parent && (parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE')) continue;
+        nodes.push(node);
+      }
       nodes.forEach(node => {
         const raw = node.nodeValue || '';
-        const text = raw.trim();
-        if (text && TEXT_MAP[text]) node.nodeValue = raw.replace(text, TEXT_MAP[text]);
+        const next = translateUiText(raw, toEn);
+        if (next !== raw) node.nodeValue = next;
       });
-      textMapDirty = true;
-    } else {
-      const EN_TO_ZH = Object.fromEntries(Object.entries(TEXT_MAP).map(([zh, en]) => [en, zh]));
-      nodes.forEach(node => {
-        const raw = node.nodeValue || '';
-        const text = raw.trim();
-        if (text && EN_TO_ZH[text]) node.nodeValue = raw.replace(text, EN_TO_ZH[text]);
+      ['title', 'aria-label', 'placeholder', 'alt'].forEach(attr => {
+        document.querySelectorAll('[' + attr + ']').forEach(el => {
+          const raw = el.getAttribute(attr);
+          if (!raw) return;
+          const next = translateUiText(raw, toEn);
+          if (next !== raw) el.setAttribute(attr, next);
+        });
       });
-      textMapDirty = false;
+      const title = document.title;
+      const nextTitle = translateUiText(title, toEn);
+      if (nextTitle !== title) document.title = nextTitle;
+      const langBtn = document.getElementById('langToggleText');
+      if (langBtn) langBtn.textContent = toEn ? 'Chinese' : 'English';
+    } finally {
+      i18nApplying = false;
+      if (i18nObserver && document.body) {
+        i18nObserver.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['title', 'aria-label', 'placeholder', 'alt'] });
+      }
     }
   }
 
-  function t(key) { return (I18N[lang] && I18N[lang][key]) || key; }
+  if (typeof MutationObserver !== 'undefined') {
+    i18nObserver = new MutationObserver(() => translateStatic());
+  }
+
+
+    function t(key) { return (I18N[lang] && I18N[lang][key]) || key; }
   function applyLang() {
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     translateStatic();
@@ -2180,9 +2491,22 @@
     return addInterval(dateStr, step * times, stepUnit);
   }
   function repeatLabel(d) {
-    if (!d) return '不重复';
+    if (!d) return lang === 'en' ? 'No repeat' : '不重复';
     normalizeDateRepeat(d);
     const every = d.repeatEvery;
+    if (lang === 'en') {
+      const unitLabelsEn = { day: ['day', 'days'], week: ['week', 'weeks'], month: ['month', 'months'], year: ['year', 'years'] };
+      const unit = unitLabelsEn[d.repeatUnit] || unitLabelsEn.year;
+      switch (d.repeat) {
+        case 'none': return 'No repeat';
+        case 'day': return 'Daily';
+        case 'week': return 'Weekly';
+        case 'month': return 'Monthly';
+        case 'year': return 'Yearly';
+        case 'custom': return `Every ${every} ${every === 1 ? unit[0] : unit[1]}`;
+        default: return 'No repeat';
+      }
+    }
     const unitLabels = { day: '天', week: '周', month: '个月', year: '年' };
     switch (d.repeat) {
       case 'none': return '不重复';
@@ -2210,7 +2534,7 @@
   let toastTimer;
   function toast(msg, duration) {
     const t = $('toast');
-    t.textContent = msg;
+    t.textContent = translateUiText(String(msg), lang === 'en');
     t.scrollTop = 0;
     t.classList.add('show');
     clearTimeout(toastTimer);
@@ -2695,7 +3019,9 @@
     const now = new Date();
     const weekdayZh = ['日','一','二','三','四','五','六'][now.getDay()];
     const hour = now.getHours();
-    const greeting = hour < 6 ? '夜深了' : hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
+    const greeting = lang === 'zh'
+      ? (hour < 6 ? '夜深了' : hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好')
+      : (hour < 6 ? 'It is late' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
     const quotesZh = [
       '慢慢来，今天也在一点点变好。',
       '把重要的事做好，也别忘了照顾自己。',
@@ -2737,14 +3063,14 @@
       lines.push('📅 ' + now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日 星期' + weekdayZh);
       lines.push(greeting + '，' + quote);
       if (dueToday.length) {
-        lines.push('📝 今日待办 ' + dueToday.length + ' 件' + (doneToday.length ? '，已完成 ' + doneToday.length + ' 件' : '') + '：' + dueToday.slice(0, 3).map(t => t.name).join('、') + (dueToday.length > 3 ? ' 等' : ''));
+        lines.push('📝 今日待办 ' + dueToday.length + ' 件' + (doneToday.length ? '，已完成 ' + doneToday.length + ' 件' : '') + '：' + dueToday.slice(0, 3).map(t => t.name).join(lang === 'zh' ? '、' : ', ') + (dueToday.length > 3 ? ' 等' : ''));
       } else if (doneToday.length) {
         lines.push('📝 今天没有未完成待办，已完成 ' + doneToday.length + ' 件，辛苦了。');
       } else {
         lines.push('📝 今天没有截止待办，可以安排一点喜欢的事。');
       }
       if (activeHabits.length) {
-        if (habitsNotChecked.length) lines.push('🌿 习惯打卡 ' + checkedToday + '/' + activeHabits.length + '，还有 ' + habitsNotChecked.length + ' 个未完成：' + habitsNotChecked.slice(0, 3).map(h => h.name).join('、'));
+        if (habitsNotChecked.length) lines.push('🌿 习惯打卡 ' + checkedToday + '/' + activeHabits.length + '，还有 ' + habitsNotChecked.length + ' 个未完成：' + habitsNotChecked.slice(0, 3).map(h => h.name).join(lang === 'zh' ? '、' : ', '));
         else lines.push('🌿 习惯打卡 ' + checkedToday + '/' + activeHabits.length + '，今天全部完成啦！');
       } else {
         lines.push('🌿 还没有添加习惯，可以从一个小习惯开始。');
@@ -2757,7 +3083,7 @@
       if (memos.length) lines.push('🗒️ 备忘录里还有 ' + memos.length + ' 条记录。');
     } else {
       lines.push('📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
-      lines.push(greeting === '夜深了' ? 'It is late. Rest well.' : greeting + ', ' + quote);
+      lines.push(greeting === 'It is late' ? 'It is late. Rest well.' : greeting + ', ' + quote);
       if (dueToday.length) {
         lines.push('📝 Todos due today: ' + dueToday.length + (doneToday.length ? ', completed: ' + doneToday.length : '') + '. ' + dueToday.slice(0, 3).map(t => t.name).join(', ') + (dueToday.length > 3 ? ', etc.' : ''));
       } else if (doneToday.length) {
@@ -2833,10 +3159,10 @@
       let body = '';
       if (dueToday.length) {
         title = lang === 'zh' ? '📝 今天有截止待办' : '📝 Todos due today';
-        body = dueToday.slice(0, 3).map(t => t.name).join('、');
+        body = dueToday.slice(0, 3).map(t => t.name).join(lang === 'zh' ? '、' : ', ');
       } else if (habitsLeft.length) {
         title = lang === 'zh' ? '🌿 别忘了今天的习惯' : "🌿 Don't forget today's habits";
-        body = habitsLeft.slice(0, 3).map(h => h.name).join('、');
+        body = habitsLeft.slice(0, 3).map(h => h.name).join(lang === 'zh' ? '、' : ', ');
       } else if (ups.length && ups[0].days <= 3) {
         title = lang === 'zh' ? '💝 重要日子临近' : '💝 Special day coming soon';
         body = ups[0].name + ' (' + ups[0].days + (lang === 'zh' ? ' 天后)' : ' days)');
@@ -2874,10 +3200,10 @@
       items.push('<div class="reminder-item"><span class="r-icon">🔒</span><div><strong>' + (lang === 'zh' ? '系统通知不可用' : 'System notifications unavailable') + '</strong><small>' + (lang === 'zh' ? '本地文件打开时浏览器无法授权系统通知。请使用 HTTPS 在线版，或点击下方导出日历提醒。' : 'A local file cannot grant system notifications. Use the HTTPS online version, or export calendar reminders below.') + '</small></div></div>');
     }
     if (dueToday.length) {
-      items.push('<div class="reminder-item"><span class="r-icon">📝</span><div><strong>' + (lang === 'zh' ? '今日待办' : 'Todos today') + ' · ' + dueToday.length + '</strong><small>' + dueToday.slice(0, 4).map(t => esc(t.name)).join('、') + '</small></div></div>');
+      items.push('<div class="reminder-item"><span class="r-icon">📝</span><div><strong>' + (lang === 'zh' ? '今日待办' : 'Todos today') + ' · ' + dueToday.length + '</strong><small>' + dueToday.slice(0, 4).map(t => esc(t.name)).join(lang === 'zh' ? '、' : ', ') + '</small></div></div>');
     }
     if (habitsLeft.length) {
-      items.push('<div class="reminder-item"><span class="r-icon">🌿</span><div><strong>' + (lang === 'zh' ? '未打卡习惯' : 'Habits left') + ' · ' + habitsLeft.length + '</strong><small>' + habitsLeft.slice(0, 4).map(h => esc(h.name)).join('、') + '</small></div></div>');
+      items.push('<div class="reminder-item"><span class="r-icon">🌿</span><div><strong>' + (lang === 'zh' ? '未打卡习惯' : 'Habits left') + ' · ' + habitsLeft.length + '</strong><small>' + habitsLeft.slice(0, 4).map(h => esc(h.name)).join(lang === 'zh' ? '、' : ', ') + '</small></div></div>');
     }
     if (ups.length) {
       const d = ups[0];
@@ -3271,7 +3597,9 @@
       $('monthBalance').classList.toggle('income', balance >= 0);
     }
     const entries = getMonthEntryList(month);
-    $('entryCount').textContent = `${entries.length} 条记录 · ${month.replace('-', '年')}月`;
+    $('entryCount').textContent = lang === 'zh'
+      ? `${entries.length} 条记录 · ${month.replace('-', '年')}月`
+      : `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} · ${monthLabel(month)}`;
     if (!entries.length) {
       $('entryList').innerHTML = '<div class="empty">这个月还没有流水</div>';
       return;
@@ -3294,12 +3622,12 @@
     const s = desc.trim();
     if (!s) return current;
     const rules = [
-      { kw: ['食堂','餐','早餐','午餐','晚餐','早饭','午饭','晚饭','外卖','咖啡','奶茶','水果','零食','饮料','超市','美食','火锅'], cat: '餐饮' },
-      { kw: ['公交','地铁','打车','滴滴','出租','高铁','火车','共享单车','加油'], cat: '交通' },
-      { kw: ['书','课程','学费','文具','打印','网课','学习','报名','考试','资料'], cat: '学习' },
-      { kw: ['电影','游戏','追剧','演出','漫展','旅游','游乐','KTV','娱乐'], cat: '娱乐' },
-      { kw: ['衣服','鞋','淘宝','购物','快递','数码','护肤','化妆品'], cat: '购物' },
-      { kw: ['宿舍','房租','水费','电费','网费','话费','住宿'], cat: '住宿' }
+      { kw: ['食堂','餐','早餐','午餐','晚餐','早饭','午饭','晚饭','外卖','咖啡','奶茶','水果','零食','饮料','超市','美食','火锅','canteen','lunch','dinner','breakfast','coffee','milk tea','snack','restaurant','food','grocery','supermarket'], cat: '餐饮' },
+      { kw: ['公交','地铁','打车','滴滴','出租','高铁','火车','共享单车','加油','bus','metro','subway','taxi','train','fuel','gas'], cat: '交通' },
+      { kw: ['书','课程','学费','文具','打印','网课','学习','报名','考试','资料','book','course','tuition','stationery','print','class','study','exam'], cat: '学习' },
+      { kw: ['电影','游戏','追剧','演出','漫展','旅游','游乐','KTV','娱乐','movie','game','concert','travel','entertainment'], cat: '娱乐' },
+      { kw: ['衣服','鞋','淘宝','购物','快递','数码','护肤','化妆品','clothes','shoes','shopping','express','digital','skincare'], cat: '购物' },
+      { kw: ['宿舍','房租','水费','电费','网费','话费','住宿','dorm','rent','utilities','housing','phone bill'], cat: '住宿' }
     ];
     for (const rule of rules) {
       if (rule.kw.some(k => s.includes(k))) return rule.cat;

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>花笺 · 选择版本</title>
+<title>Huajian · Choose Version</title>
 <style>
   :root { --cream:#fbf5e9; --paper:#fffdf7; --green:#2f5847; --dark:#234538; --coral:#f57b6a; --muted:#8a9189; --line:#eadfce; }
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -38,16 +38,16 @@
 <body>
   <main class="card">
     <div class="logo">🌸</div>
-    <h1>花笺 · 大学生活手记</h1>
-    <div class="sub">请选择要使用的版本 / Choose a version</div>
+    <h1>Huajian · College Life Dashboard</h1>
+    <div class="sub">Choose a version</div>
     <div class="choices">
-      <a class="choice coral" href="花笺手机版.html">📱 手机版<small>离线多页面 · 无登录</small></a>
-      <a class="choice" href="花笺电脑版.html">💻 电脑版<small>单页全部模块</small></a>
+      <a class="choice coral" href="花笺手机版.html">📱 Mobile<small>Offline multi-page · No login</small></a>
+      <a class="choice" href="花笺电脑版.html">💻 Desktop<small>All modules in one page</small></a>
     </div>
-    <div class="foot">数据保存在当前浏览器本地，不会自动跨设备同步。</div>
+    <div class="foot">Data is stored locally in this browser and does not sync across devices automatically.</div>
   </main>
   <script>
-    // 手机访问时自动优先进入手机版，但不影响手动选择。
+    // On mobile, open the mobile version automatically while keeping manual choice available.
     try {
       var ua = navigator.userAgent || '';
       if (/Android|iPhone|iPad|iPod|HarmonyOS|Mobile/i.test(ua)) {
